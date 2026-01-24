@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Post } from "@/models/Post";
+import { generateTts } from "@/lib/services/tts-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,24 @@ export async function POST(request: NextRequest) {
     // 5. Connect to MongoDB
     await connectDB();
 
-    // 6. Create the post document
+    // 6. Generate TTS from description if provided
+    let ttsAudioUrl: string | null = null;
+    if (description && description.trim() !== "") {
+      try {
+        console.log("[Post Create] Generating TTS for description...");
+        ttsAudioUrl = await generateTts(description);
+        console.log("[Post Create] TTS generated:", ttsAudioUrl);
+      } catch (ttsError) {
+        // Log the error but don't fail the post creation
+        console.error("[Post Create] TTS generation failed:", ttsError);
+        // Continue without TTS audio
+      }
+    }
+
+    // 7. Create the post document
+    // Use provided audioUrl, or the generated TTS audio, or empty string
+    const finalAudioUrl = audioUrl || ttsAudioUrl || "";
+
     const newPost = new Post({
       userId: userId,
       title: title.trim(),
@@ -68,16 +86,16 @@ export async function POST(request: NextRequest) {
       },
       approximateLocation: address || "",
       radius: radius || 100,
-      audioUrl: audioUrl || "",
+      audioUrl: finalAudioUrl,
       likes: 0,
       comments: [],
       moderationStatus: "approved" // Auto-approve for now
     });
 
-    // 7. Save to MongoDB
+    // 8. Save to MongoDB
     await newPost.save();
 
-    // 8. Return success response
+    // 9. Return success response
     return NextResponse.json({
       success: true,
       message: "Post created successfully",

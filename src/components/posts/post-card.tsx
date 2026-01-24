@@ -1,7 +1,9 @@
 // Post preview card
 
+"use client";
+
 import Link from "next/link";
-import { MapPin, Heart, MessageCircle, Clock, Eye } from "lucide-react";
+import { MapPin, Heart, MessageCircle, Clock, Eye, Volume2 } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -11,6 +13,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AudioPlayer } from "@/components/ui/audio-player";
 
 interface PostCardProps {
   post: {
@@ -29,6 +32,7 @@ interface PostCardProps {
       type: "image" | "model" | "gif";
       url: string;
     };
+    audioUrl?: string;
   };
 }
 
@@ -57,6 +61,17 @@ export function PostCard({ post }: PostCardProps) {
               alt={post.title}
               className="object-cover w-full h-full"
             />
+          </div>
+        )}
+
+        {/* Audio Player */}
+        {post.audioUrl && post.audioUrl.trim() !== "" && (
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+              <Volume2 className="h-4 w-4" />
+              <span>Listen to description</span>
+            </div>
+            <AudioPlayer src={post.audioUrl} compact />
           </div>
         )}
         
