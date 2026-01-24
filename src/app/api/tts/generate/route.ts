@@ -1,7 +1,17 @@
 // POST /api/tts/generate
 
-import { NextResponse } from "next/server";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import "dotenv/config";
 
-export async function POST() {
-  return NextResponse.json({ message: "TTS not implemented" }, { status: 501 });
-}
+const elevenlabs = new ElevenLabsClient();
+
+const agent = await elevenlabs.conversationalAi.agents.create({
+  name: "My conversational agent",
+  conversationConfig: {
+    agent: {
+      prompt: {
+        prompt: "You are a helpful assistant that can answer questions and help with tasks.",
+      }
+    },
+  },
+});
