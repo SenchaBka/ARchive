@@ -1,3 +1,4 @@
+// Homepage with Three.js globe
 import { auth0 } from "@/lib/auth0";
 import LoginButton from "@/components/LoginButton";
 import LogoutButton from "@/components/LogoutButton";
