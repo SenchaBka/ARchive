@@ -9,13 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "^4.14.0",
+    "@elevenlabs/elevenlabs-js": "^2.32.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@tanstack/react-query": "^5.90.20",
     "aframe": "^1.7.1",
     "aframe-ar": "^0.2.1-a",
-    "@auth0/nextjs-auth0": "^4.14.0",
-    "@elevenlabs/elevenlabs-js": "^2.32.0",
     "axios": "^1.13.2",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.5",
