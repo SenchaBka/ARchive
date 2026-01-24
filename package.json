@@ -14,8 +14,6 @@
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@auth0/nextjs-auth0": "^4.14.0",
-    "@elevenlabs/elevenlabs-js": "^2.32.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@tanstack/react-query": "^5.90.20",
