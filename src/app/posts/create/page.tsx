@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,6 +13,9 @@ import {
   Check,
   ArrowLeft,
   ArrowRight,
+  Upload,
+  X,
+  Loader2,
 } from "lucide-react";
 import { StepTitle } from "@/components/create-post/step-title";
 import { StepLocation } from "@/components/create-post/step-location";
@@ -29,7 +33,10 @@ const STEPS = [
 ];
 
 export default function CreatePostPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PostData>({
     title: "",
     description: "",
@@ -45,8 +52,90 @@ export default function CreatePostPage() {
   const nextStep = () => setStep((s) => Math.min(s + 1, STEPS.length));
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
+  // Function to upload a file and get the URL
+  const uploadFile = async (file: File, type: "media" | "audio"): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+
+    const response = await fetch("/api/upload/media", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload ${type}`);
+    }
+
+    const result = await response.json();
+    return result.url;
+  };
+
+  // Function to determine media type from file
+  const getMediaType = (file: File): "image" | "gif" | "model" => {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (extension === "gif") return "gif";
+    if (["glb", "gltf", "obj"].includes(extension || "")) return "model";
+    return "image";
+  };
+
+  // Main submit function
   const handleSubmit = async () => {
-    console.log("Submitting:", data);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Step 1: Upload media file if exists
+      let mediaUrl: string | null = null;
+      let mediaType: string | null = null;
+      
+      if (data.media) {
+        mediaUrl = await uploadFile(data.media, "media");
+        mediaType = getMediaType(data.media);
+      }
+
+      // Step 2: Upload audio file if exists
+      let audioUrl: string | null = null;
+      
+      if (data.audio) {
+        audioUrl = await uploadFile(data.audio, "audio");
+      }
+
+      // Step 3: Create the post
+      const response = await fetch("/api/posts/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          address: data.address,
+          radius: data.radius,
+          mediaUrl: mediaUrl,
+          mediaType: mediaType,
+          audioUrl: audioUrl,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create post");
+      }
+
+      // Success! Redirect to posts page
+      console.log("Post created:", result);
+      router.push("/posts");
+
+    } catch (err) {
+      console.error("Error creating post:", err);
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const canProceed = () => {
@@ -169,7 +258,7 @@ export default function CreatePostPage() {
           <Button
             variant="ghost"
             onClick={prevStep}
-            disabled={step === 1}
+            disabled={step === 1 || isSubmitting}
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -188,13 +277,30 @@ export default function CreatePostPage() {
           ) : (
             <Button
               onClick={handleSubmit}
+              disabled={isSubmitting}
               className="gap-2 bg-foreground text-background hover:bg-foreground/90"
             >
-              Publish Post
-              <Check className="h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  Publish Post
+                  <Check className="h-4 w-4" />
+                </>
+              )}
             </Button>
           )}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* Step Counter */}
         <p className="mt-6 text-center text-xs text-muted-foreground">
