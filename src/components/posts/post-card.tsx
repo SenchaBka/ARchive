@@ -43,6 +43,9 @@ export function PostCard({ post }: PostCardProps) {
     year: "numeric",
   });
 
+  // Debug: log audioUrl
+  console.log(`[PostCard ${post._id}] audioUrl:`, post.audioUrl);
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>

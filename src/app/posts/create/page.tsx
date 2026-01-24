@@ -94,11 +94,25 @@ export default function CreatePostPage() {
         mediaType = getMediaType(data.media);
       }
 
-      // Step 2: Upload audio file if exists
-      let audioUrl: string | null = null;
+      // Step 2: Use the already uploaded audio URL from step-audio
+      // If audio was uploaded in step-audio, audioUrl is already set
+      // Only upload if we have a file but no URL yet
+      let audioUrl: string | null = data.audioUrl;
       
-      if (data.audio) {
-        audioUrl = await uploadFile(data.audio, "audio");
+      if (data.audio && !audioUrl) {
+        // Fallback: upload audio if not already uploaded
+        const formData = new FormData();
+        formData.append("audio", data.audio);
+        
+        const audioResponse = await fetch("/api/upload/audio", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (audioResponse.ok) {
+          const audioResult = await audioResponse.json();
+          audioUrl = audioResult.url;
+        }
       }
 
       // Step 3: Create the post

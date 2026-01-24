@@ -19,6 +19,15 @@ export function AudioPlayer({ src, title, compact = false }: AudioPlayerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset state when src changes
+  useEffect(() => {
+    setError(null);
+    setIsLoading(true);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
+  }, [src]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -37,7 +46,10 @@ export function AudioPlayer({ src, title, compact = false }: AudioPlayerProps) {
       setCurrentTime(0);
     };
 
-    const handleError = () => {
+    const handleError = (e: Event) => {
+      const audioEl = e.target as HTMLAudioElement;
+      console.error("Audio error:", audioEl.error);
+      console.error("Audio src:", src);
       setError("Failed to load audio");
       setIsLoading(false);
     };
@@ -59,7 +71,7 @@ export function AudioPlayer({ src, title, compact = false }: AudioPlayerProps) {
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("canplay", handleCanPlay);
     };
-  }, []);
+  }, [src]);
 
   const togglePlay = async () => {
     const audio = audioRef.current;
