@@ -1,4 +1,4 @@
-import { Auth0Provider } from "@auth0/nextjs-auth0/client";
+import Providers from "./providers";
 import "@/styles/globals.css";
 
 export const metadata = {
@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <body className="min-h-screen">
-        <Auth0Provider>{children}</Auth0Provider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
