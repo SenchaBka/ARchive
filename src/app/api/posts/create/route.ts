@@ -69,9 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. Create the post document
-    // Use provided audioUrl, or the generated TTS audio, or empty string
-    const finalAudioUrl = audioUrl || ttsAudioUrl || "";
-
+    // Store both uploaded audio and TTS audio separately
     const newPost = new Post({
       userId: userId,
       title: title.trim(),
@@ -86,7 +84,8 @@ export async function POST(request: NextRequest) {
       },
       approximateLocation: address || "",
       radius: radius || 100,
-      audioUrl: finalAudioUrl,
+      audioUrl: audioUrl || "",        // User-uploaded audio
+      ttsAudioUrl: ttsAudioUrl || "",  // TTS-generated audio
       likes: 0,
       comments: [],
       moderationStatus: "approved" // Auto-approve for now

@@ -17,7 +17,8 @@ export interface PostData {
   };
   approximateLocation?: string;
   radius: number;
-  audioUrl?: string;
+  audioUrl?: string;      // User-uploaded audio
+  ttsAudioUrl?: string;   // TTS-generated audio from description
   likes: number;
   comments: {
     userId: string;

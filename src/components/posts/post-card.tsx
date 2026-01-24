@@ -32,7 +32,8 @@ interface PostCardProps {
       type: "image" | "model" | "gif";
       url: string;
     };
-    audioUrl?: string;
+    audioUrl?: string;      // User-uploaded audio
+    ttsAudioUrl?: string;   // TTS-generated audio from description
   };
 }
 
@@ -67,12 +68,23 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         )}
 
-        {/* Audio Player */}
-        {post.audioUrl && post.audioUrl.trim() !== "" && (
+        {/* TTS Audio Player - Description */}
+        {post.ttsAudioUrl && post.ttsAudioUrl.trim() !== "" && (
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
               <Volume2 className="h-4 w-4" />
               <span>Listen to description</span>
+            </div>
+            <AudioPlayer src={post.ttsAudioUrl} compact />
+          </div>
+        )}
+
+        {/* Uploaded Audio Player */}
+        {post.audioUrl && post.audioUrl.trim() !== "" && (
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+              <Volume2 className="h-4 w-4" />
+              <span>Audio attachment</span>
             </div>
             <AudioPlayer src={post.audioUrl} compact />
           </div>

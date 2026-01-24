@@ -36,7 +36,8 @@ const PostSchema = new Schema({
     default: 50 // meters
   },
 
-  audioUrl: String,
+  audioUrl: String,      // User-uploaded audio
+  ttsAudioUrl: String,   // TTS-generated audio from description
 
   likes: {
     type: Number,
