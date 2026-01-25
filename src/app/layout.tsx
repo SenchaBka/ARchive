@@ -30,6 +30,7 @@ export default function RootLayout({
           margin: 0,
           padding: 0 
         }}
+        suppressHydrationWarning
       >
         <Providers>
           <Navbar />
