@@ -112,3 +112,59 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 0 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--color-card);
+  color: var(--color-foreground);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+  line-height: 1.5;
+}
+
+.leaflet-popup-tip {
+  background: var(--color-card);
+}
+
+.leaflet-popup-close-button {
+  color: var(--color-muted-foreground) !important;
+  font-size: 20px !important;
+  padding: 8px !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--color-foreground) !important;
+}
+
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.user-location-marker {
+  background: transparent;
+  border: none;
+}
+
+/* Keep map elements below navbar */
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-control {
+  z-index: 2 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
