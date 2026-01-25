@@ -31,6 +31,7 @@ export interface PostData {
 
 export function usePosts() {
   const [data, setData] = useState<PostData[]>([]);
+  const [discoveredPostIds, setDiscoveredPostIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +45,7 @@ export function usePosts() {
         }
         const result = await response.json();
         setData(result.posts || []);
+        setDiscoveredPostIds(result.discoveredPostIds || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -63,6 +65,7 @@ export function usePosts() {
       }
       const result = await response.json();
       setData(result.posts || []);
+      setDiscoveredPostIds(result.discoveredPostIds || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -70,5 +73,5 @@ export function usePosts() {
     }
   };
 
-  return { data, isLoading, error, refetch };
+  return { data, discoveredPostIds, isLoading, error, refetch };
 }

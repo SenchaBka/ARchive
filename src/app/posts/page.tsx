@@ -30,7 +30,7 @@ const PostMap = dynamic(
 type ViewMode = "map" | "list";
 
 export default function PostsPage() {
-  const { data: posts, isLoading, error, refetch } = usePosts();
+  const { data: posts, discoveredPostIds, isLoading, error, refetch } = usePosts();
   const { latitude, longitude, isLoading: locationLoading } = useLocation();
   const [viewMode, setViewMode] = useState<ViewMode>("map");
 
@@ -131,6 +131,7 @@ export default function PostsPage() {
           <PostMap
             posts={posts}
             userLocation={userLocation}
+            discoveredPostIds={discoveredPostIds}
             className="h-full"
           />
         </div>

@@ -58,21 +58,32 @@ export default function PostDetailPage() {
   const [hasLiked, setHasLiked] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
+  const [hasPreviouslyUnlocked, setHasPreviouslyUnlocked] = useState(false);
 
   const { latitude, longitude, error: locationError, isLoading: locationLoading, refresh: refreshLocation } = useLocation();
 
-  // Fetch post data
+  // Fetch post data and check if previously unlocked
   useEffect(() => {
     async function fetchPost() {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/posts/${postId}`);
-        if (!response.ok) {
+        const [postResponse, unlockResponse] = await Promise.all([
+          fetch(`/api/posts/${postId}`),
+          fetch(`/api/posts/${postId}/unlock`)
+        ]);
+        
+        if (!postResponse.ok) {
           throw new Error("Post not found");
         }
-        const data = await response.json();
+        const data = await postResponse.json();
         setPost(data.post);
         setHasLiked(data.hasLiked || false);
+        
+        // Check if previously unlocked
+        if (unlockResponse.ok) {
+          const unlockData = await unlockResponse.json();
+          setHasPreviouslyUnlocked(unlockData.hasUnlocked || false);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load post");
       } finally {
@@ -85,10 +96,36 @@ export default function PostDetailPage() {
     }
   }, [postId]);
 
-  // Calculate if user is within range
-  const isUnlocked = post && latitude !== null && longitude !== null
+  // Calculate if user is currently within range
+  const isCurrentlyInRange = post && latitude !== null && longitude !== null
     ? isWithinRange(latitude, longitude, post.coordinates.lat, post.coordinates.lng, post.radius)
     : false;
+
+  // User has access if they're in range OR have previously unlocked
+  const isUnlocked = isCurrentlyInRange || hasPreviouslyUnlocked;
+
+  // Save unlock when user enters range for the first time
+  useEffect(() => {
+    async function saveUnlock() {
+      console.log(`[Unlock Check] postId: ${postId}, isCurrentlyInRange: ${isCurrentlyInRange}, hasPreviouslyUnlocked: ${hasPreviouslyUnlocked}, post: ${!!post}`);
+      if (isCurrentlyInRange && !hasPreviouslyUnlocked && post) {
+        try {
+          console.log(`[Unlock] Saving unlock for post ${postId}`);
+          const response = await fetch(`/api/posts/${postId}/unlock`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          console.log(`[Unlock] Response:`, data);
+          if (response.ok) {
+            setHasPreviouslyUnlocked(true);
+          }
+        } catch (err) {
+          console.error("Failed to save unlock:", err);
+        }
+      }
+    }
+    saveUnlock();
+  }, [isCurrentlyInRange, hasPreviouslyUnlocked, post, postId]);
 
   // Calculate distance to post
   const distanceToPost = post && latitude !== null && longitude !== null

@@ -74,6 +74,7 @@ interface Post {
 interface PostMapProps {
   posts: Post[];
   userLocation: { lat: number; lng: number } | null;
+  discoveredPostIds?: string[];
   onPostClick?: (postId: string) => void;
   className?: string;
 }
@@ -147,6 +148,7 @@ function haversineDistance(
 export function PostMap({
   posts,
   userLocation,
+  discoveredPostIds = [],
   onPostClick,
   className = "",
 }: PostMapProps) {
@@ -240,7 +242,9 @@ export function PostMap({
                 post.coordinates.lng
               )
             : null;
-          const isUnlocked = distance !== null && distance <= post.radius;
+          const isCurrentlyInRange = distance !== null && distance <= post.radius;
+          const hasPreviouslyUnlocked = discoveredPostIds.includes(post._id);
+          const isUnlocked = isCurrentlyInRange || hasPreviouslyUnlocked;
 
           return (
             <Marker
