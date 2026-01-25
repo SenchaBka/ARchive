@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Particle Tube with Locar.js - Location-Based AR</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #0a0a0f;
+        overflow: hidden;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      #ar-container {
+        width: 100%;
+        height: 100vh;
+      }
+
+      #status {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+        pointer-events: none;
+        text-shadow: 0 0 10px rgba(100, 180, 255, 0.8);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px 20px;
+        border-radius: 20px;
+        max-width: 90%;
+      }
+
+      .btn-container {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .action-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        border: none;
+        border-radius: 25px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+      }
+
+      .action-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(79, 172, 254, 0.6);
+      }
+
+      .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .action-btn.secondary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      #gps-info {
+        position: absolute;
+        top: 80px;
+        right: 10px;
+        color: #88ccff;
+        font-size: 11px;
+        padding: 8px;
+        background: rgba(79, 172, 254, 0.1);
+        border-radius: 8px;
+      }
+
+      body.param-mode #place-tube-btn,
+      body.param-mode #gps-info {
+        display: none !important;
+      }
+
+      body.param-mode #status {
+        top: 12px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ar-container"></div>
+
+    <div id="status">
+      Initializing location-based AR... Click tube to explode and reveal
+      content!
+    </div>
+
+    <div id="gps-info">
+      <strong>GPS Status:</strong> Waiting for location...
+    </div>
+
+    <div class="btn-container">
+      <button id="place-tube-btn" class="action-btn" disabled>
+        Place Tube Here
+      </button>
+      <button id="explode-btn" class="action-btn secondary" disabled>
+        Explode
+      </button>
+      <button id="reset-btn" class="action-btn secondary">Reset</button>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+
+      // Inline ParticleTube class
+      class ParticleTube {
+        constructor(config = {}) {
+          this.PARTICLE_COUNT = config.particleCount || 25000;
+          this.TUBE_RADIUS = config.tubeRadius || 0.6;
+          this.TUBE_HEIGHT = config.tubeHeight || 8;
+          this.MAX_IMAGES = config.maxImages || 5;
+          this.MAX_TEXT_LENGTH = config.maxTextLength || 1000;
+          this.IMAGE_MAX_SIZE = config.imageMaxSize || 512;
+
+          this.scene = config.scene;
+          this.camera = config.camera;
+          this.ownScene = !config.scene;
+          this.position = config.position || null;
+
+          this.images = [];
+          this.text = "";
+          this.contentPlanes = [];
+          this.contentVisible = false;
+          this.contentOpacity = 0;
+          this.isAnimatingContent = false;
+
+          this.isExploding = false;
+          this.explosionProgress = 0;
+          this.EXPLOSION_DURATION = 0.8;
+
+          this.group = new THREE.Group();
+
+          this.onContentShow = null;
+          this.onContentHide = null;
+          this.onExplosionStart = null;
+          this.onExplosionComplete = null;
+          this.onReset = null;
+
+          this.init();
+        }
+
+        init() {
+          this.createLighting();
+          this.createTube();
+          this.createParticles();
+
+          if (this.scene) {
+            this.scene.add(this.group);
+          }
+
+          this.clock = new THREE.Clock();
+        }
+
+        getGroup() {
+          return this.group;
+        }
+
+        getScene() {
+          if (!this.scene) {
+            this.scene = new THREE.Scene();
+            this.scene.add(this.group);
+          }
+          return this.scene;
+        }
+
+        createLighting() {
+          this.tubeLight1 = new THREE.PointLight(0x88ccff, 3, 15);
+          this.tubeLight1.position.set(0, this.TUBE_HEIGHT * 0.3, 0);
+          this.group.add(this.tubeLight1);
+
+          this.tubeLight2 = new THREE.PointLight(0x88ccff, 3, 15);
+          this.tubeLight2.position.set(0, -this.TUBE_HEIGHT * 0.3, 0);
+          this.group.add(this.tubeLight2);
+
+          this.tubeLight3 = new THREE.PointLight(0xaaddff, 2, 12);
+          this.tubeLight3.position.set(0, 0, 0);
+          this.group.add(this.tubeLight3);
+        }
+
+        createLightBeamTexture() {
+          const canvas = document.createElement("canvas");
+          canvas.width = 256;
+          canvas.height = 512;
+          const ctx = canvas.getContext("2d");
+
+          const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          gradient.addColorStop(0, "rgba(200, 230, 255, 0.05)");
+          gradient.addColorStop(0.1, "rgba(180, 220, 255, 0.2)");
+          gradient.addColorStop(0.5, "rgba(200, 230, 255, 0.35)");
+          gradient.addColorStop(0.9, "rgba(180, 220, 255, 0.2)");
+          gradient.addColorStop(1, "rgba(200, 230, 255, 0.05)");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.globalCompositeOperation = "lighter";
+          for (let i = 0; i < 15; i++) {
+            const x = Math.random() * canvas.width;
+            const width = 5 + Math.random() * 20;
+            const streakGradient = ctx.createLinearGradient(
+              x,
+              0,
+              x,
+              canvas.height,
+            );
+            streakGradient.addColorStop(0, "rgba(255, 255, 255, 0.05)");
+            streakGradient.addColorStop(0.2, "rgba(200, 240, 255, 0.2)");
+            streakGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.3)");
+            streakGradient.addColorStop(0.8, "rgba(200, 240, 255, 0.2)");
+            streakGradient.addColorStop(1, "rgba(255, 255, 255, 0.05)");
+
+            ctx.fillStyle = streakGradient;
+            ctx.fillRect(x - width / 2, 0, width, canvas.height);
+          }
+
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+          return texture;
+        }
+
+        createTube() {
+          const cylinderGeometry = new THREE.CylinderGeometry(
+            this.TUBE_RADIUS - 0.05,
+            this.TUBE_RADIUS - 0.05,
+            this.TUBE_HEIGHT,
+            32,
+            1,
+            true,
+          );
+          const lightBeamTexture = this.createLightBeamTexture();
+          this.cylinderMaterial = new THREE.MeshBasicMaterial({
+            map: lightBeamTexture,
+            color: 0x88ccff,
+            transparent: true,
+            opacity: 0.35,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          this.innerCylinder = new THREE.Mesh(
+            cylinderGeometry,
+            this.cylinderMaterial,
+          );
+          this.group.add(this.innerCylinder);
+
+          const glowCylinderGeometry = new THREE.CylinderGeometry(
+            this.TUBE_RADIUS + 0.15,
+            this.TUBE_RADIUS + 0.15,
+            this.TUBE_HEIGHT,
+            32,
+            1,
+            true,
+          );
+          this.glowCylinderMaterial = new THREE.MeshBasicMaterial({
+            color: 0xaaddff,
+            transparent: true,
+            opacity: 0.1,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          this.glowCylinder = new THREE.Mesh(
+            glowCylinderGeometry,
+            this.glowCylinderMaterial,
+          );
+          this.group.add(this.glowCylinder);
+        }
+
+        createParticleTexture() {
+          const canvas = document.createElement("canvas");
+          canvas.width = 64;
+          canvas.height = 64;
+          const ctx = canvas.getContext("2d");
+
+          const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+          gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+          gradient.addColorStop(0.3, "rgba(150, 220, 255, 0.8)");
+          gradient.addColorStop(0.6, "rgba(100, 180, 255, 0.4)");
+          gradient.addColorStop(1, "rgba(50, 150, 255, 0)");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 64, 64);
+
+          return new THREE.CanvasTexture(canvas);
+        }
+
+        initTubeParticles() {
+          for (let i = 0; i < this.PARTICLE_COUNT; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = this.TUBE_RADIUS + (Math.random() - 0.5) * 0.1;
+            const height = (Math.random() - 0.5) * this.TUBE_HEIGHT;
+
+            const x = Math.cos(angle) * radius;
+            const y = height;
+            const z = Math.sin(angle) * radius;
+
+            this.positions[i * 3] = x;
+            this.positions[i * 3 + 1] = y;
+            this.positions[i * 3 + 2] = z;
+
+            this.originalPositions[i * 3] = x;
+            this.originalPositions[i * 3 + 1] = y;
+            this.originalPositions[i * 3 + 2] = z;
+
+            const t = (height + this.TUBE_HEIGHT / 2) / this.TUBE_HEIGHT;
+            this.colors[i * 3] = 0.4 + t * 0.2;
+            this.colors[i * 3 + 1] = 0.7 + t * 0.2;
+            this.colors[i * 3 + 2] = 1.0;
+
+            this.sizes[i] = Math.random() * 0.025 + 0.015;
+            this.alphas[i] = 0.7 + Math.random() * 0.3;
+
+            this.velocities[i * 3] = 0;
+            this.velocities[i * 3 + 1] = 0;
+            this.velocities[i * 3 + 2] = 0;
+          }
+        }
+
+        createParticles() {
+          this.geometry = new THREE.BufferGeometry();
+          this.positions = new Float32Array(this.PARTICLE_COUNT * 3);
+          this.colors = new Float32Array(this.PARTICLE_COUNT * 3);
+          this.sizes = new Float32Array(this.PARTICLE_COUNT);
+          this.velocities = new Float32Array(this.PARTICLE_COUNT * 3);
+          this.originalPositions = new Float32Array(this.PARTICLE_COUNT * 3);
+          this.alphas = new Float32Array(this.PARTICLE_COUNT);
+
+          this.initTubeParticles();
+
+          this.geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(this.positions, 3),
+          );
+          this.geometry.setAttribute(
+            "color",
+            new THREE.BufferAttribute(this.colors, 3),
+          );
+          this.geometry.setAttribute(
+            "size",
+            new THREE.BufferAttribute(this.sizes, 1),
+          );
+          this.geometry.setAttribute(
+            "alpha",
+            new THREE.BufferAttribute(this.alphas, 1),
+          );
+
+          this.particleMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+              time: { value: 0 },
+              pointTexture: { value: this.createParticleTexture() },
+            },
+            vertexShader: `
+              attribute float size;
+              attribute float alpha;
+              varying vec3 vColor;
+              varying float vAlpha;
+              
+              void main() {
+                vColor = color;
+                vAlpha = alpha;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (300.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D pointTexture;
+              varying vec3 vColor;
+              varying float vAlpha;
+              
+              void main() {
+                vec4 texColor = texture2D(pointTexture, gl_PointCoord);
+                if (texColor.a < 0.1) discard;
+                gl_FragColor = vec4(vColor, texColor.a * vAlpha);
+              }
+            `,
+            transparent: true,
+            vertexColors: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          });
+
+          this.particles = new THREE.Points(
+            this.geometry,
+            this.particleMaterial,
+          );
+          this.group.add(this.particles);
+        }
+
+        async optimizeImage(source) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let { width, height } = img;
+
+              if (width > this.IMAGE_MAX_SIZE || height > this.IMAGE_MAX_SIZE) {
+                const ratio = Math.min(
+                  this.IMAGE_MAX_SIZE / width,
+                  this.IMAGE_MAX_SIZE / height,
+                );
+                width *= ratio;
+                height *= ratio;
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+
+              resolve(canvas.toDataURL("image/jpeg", 0.7));
+            };
+
+            img.onerror = () => reject(new Error("Failed to load image"));
+
+            if (typeof source === "string") {
+              img.src = source;
+            } else if (source instanceof File || source instanceof Blob) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                img.src = e.target.result;
+              };
+              reader.onerror = () => reject(new Error("Failed to read file"));
+              reader.readAsDataURL(source);
+            } else {
+              reject(new Error("Invalid image source"));
+            }
+          });
+        }
+
+        async setImages(sources) {
+          this.images = [];
+
+          const sourcesToProcess = sources.slice(0, this.MAX_IMAGES);
+
+          for (const source of sourcesToProcess) {
+            try {
+              const optimizedUrl = await this.optimizeImage(source);
+              this.images.push(optimizedUrl);
+            } catch (error) {
+              console.warn("Failed to process image:", error);
+            }
+          }
+
+          return this.images;
+        }
+
+        setText(text) {
+          this.text = String(text).slice(0, this.MAX_TEXT_LENGTH);
+          return this.text;
+        }
+
+        createContentCanvas() {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = 1024;
+          canvas.height = 2048;
+
+          return canvas;
+        }
+
+        async renderContent() {
+          const canvas = this.createContentCanvas();
+          const ctx = canvas.getContext("2d");
+
+          let yOffset = 30;
+          const padding = 20;
+
+          if (this.images.length > 0) {
+            const imagePromise = new Promise((res) => {
+              const img = new Image();
+              img.onload = () => res(img);
+              img.onerror = () => res(null);
+              img.src = this.images[0];
+            });
+
+            const img = await imagePromise;
+
+            if (img) {
+              const availableWidth = canvas.width - padding * 2;
+              const imageHeight = 4000; // Much bigger image
+              const imageWidth = availableWidth;
+
+              let drawWidth = imageWidth;
+              let drawHeight = imageHeight;
+              const imgAspect = img.width / img.height;
+              const targetAspect = imageWidth / imageHeight;
+
+              if (imgAspect > targetAspect) {
+                drawHeight = imageWidth / imgAspect;
+              } else {
+                drawWidth = imageHeight * imgAspect;
+              }
+
+              const xPos = (canvas.width - drawWidth) / 2;
+              const yPos = yOffset;
+
+              ctx.drawImage(img, xPos, yPos, drawWidth, drawHeight);
+
+              yOffset += drawHeight + 20;
+            }
+          }
+
+          if (this.text) {
+            yOffset += 10;
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = '18px "Segoe UI", sans-serif';
+            ctx.textAlign = "left";
+
+            const maxCharsPerLine = 55;
+            const lineHeight = 26;
+            const textPadding = padding;
+
+            let remainingText = this.text;
+            let lineY = yOffset;
+
+            while (remainingText.length > 0 && lineY < canvas.height - 50) {
+              let line = "";
+
+              if (remainingText.length <= maxCharsPerLine) {
+                line = remainingText;
+                remainingText = "";
+              } else {
+                let cutPoint = maxCharsPerLine;
+                const spaceIndex = remainingText.lastIndexOf(
+                  " ",
+                  maxCharsPerLine,
+                );
+
+                if (spaceIndex > 0) {
+                  cutPoint = spaceIndex;
+                }
+
+                line = remainingText.substring(0, cutPoint);
+                remainingText = remainingText.substring(cutPoint).trim();
+              }
+
+              ctx.fillText(line, textPadding, lineY);
+              lineY += lineHeight;
+            }
+
+            if (remainingText.length > 0 && lineY < canvas.height - 50) {
+              ctx.fillText("...", textPadding, lineY);
+            }
+          }
+
+          return canvas;
+        }
+
+        async createContentPlane() {
+          this.clearContent();
+
+          if (this.images.length === 0 && !this.text) {
+            return null;
+          }
+
+          const contentCanvas = await this.renderContent();
+          const texture = new THREE.CanvasTexture(contentCanvas);
+          texture.needsUpdate = true;
+
+          const aspectRatio = contentCanvas.height / contentCanvas.width;
+          const planeWidth = 3.0; // Much bigger plane
+          const planeHeight = planeWidth * aspectRatio;
+
+          const planeGeometry = new THREE.PlaneGeometry(
+            planeWidth,
+            planeHeight,
+          );
+          const planeMaterial = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          });
+
+          const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+          plane.position.set(0, 0, 0);
+
+          this.contentPlanes.push(plane);
+          this.group.add(plane);
+
+          return plane;
+        }
+
+        async showContent() {
+          if (this.isAnimatingContent) return;
+
+          await this.createContentPlane();
+
+          if (this.contentPlanes.length === 0) {
+            console.warn("No content to show");
+            return;
+          }
+
+          this.isAnimatingContent = false;
+          this.contentVisible = false;
+          this.contentOpacity = 0;
+
+          for (const plane of this.contentPlanes) {
+            plane.material.opacity = 0;
+            plane.visible = false;
+          }
+
+          if (this.onContentShow) {
+            this.onContentShow();
+          }
+        }
+
+        hideContent() {
+          if (this.isAnimatingContent) return;
+
+          this.isAnimatingContent = true;
+          this.contentVisible = false;
+
+          if (this.onContentHide) {
+            this.onContentHide();
+          }
+        }
+
+        clearContent() {
+          for (const plane of this.contentPlanes) {
+            this.group.remove(plane);
+            plane.geometry.dispose();
+            plane.material.map?.dispose();
+            plane.material.dispose();
+          }
+          this.contentPlanes = [];
+          this.contentOpacity = 0;
+        }
+
+        startExplosion() {
+          if (this.isExploding) return;
+
+          this.isExploding = true;
+          this.explosionProgress = 0;
+
+          for (let i = 0; i < this.PARTICLE_COUNT; i++) {
+            const x = this.positions[i * 3];
+            const y = this.positions[i * 3 + 1];
+            const z = this.positions[i * 3 + 2];
+
+            const dx = x;
+            const dy = y * 0.3;
+            const dz = z;
+
+            const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const speed = 4 + Math.random() * 5;
+
+            this.velocities[i * 3] =
+              (dx / length) * speed + (Math.random() - 0.5) * 0.5;
+            this.velocities[i * 3 + 1] =
+              (dy / length) * speed + Math.random() * 1.5;
+            this.velocities[i * 3 + 2] =
+              (dz / length) * speed + (Math.random() - 0.5) * 0.5;
+          }
+
+          if (this.onExplosionStart) {
+            this.onExplosionStart();
+          }
+        }
+
+        reset() {
+          this.isExploding = false;
+          this.explosionProgress = 0;
+          this.initTubeParticles();
+
+          this.geometry.attributes.position.needsUpdate = true;
+          this.geometry.attributes.color.needsUpdate = true;
+          this.geometry.attributes.size.needsUpdate = true;
+          this.geometry.attributes.alpha.needsUpdate = true;
+
+          this.cylinderMaterial.opacity = 0.35;
+          this.glowCylinderMaterial.opacity = 0.1;
+          this.innerCylinder.visible = true;
+          this.glowCylinder.visible = true;
+          this.innerCylinder.scale.set(1, 1, 1);
+          this.glowCylinder.scale.set(1, 1, 1);
+
+          this.tubeLight1.intensity = 3;
+          this.tubeLight2.intensity = 3;
+          this.tubeLight3.intensity = 2;
+
+          this.clearContent();
+          this.contentVisible = false;
+          this.isAnimatingContent = false;
+
+          if (this.onReset) {
+            this.onReset();
+          }
+        }
+
+        update(delta) {
+          if (delta === undefined) {
+            delta = this.clock.getDelta();
+          }
+
+          this.particleMaterial.uniforms.time.value += delta;
+
+          if (this.camera) {
+            for (const plane of this.contentPlanes) {
+              plane.lookAt(this.camera.position);
+            }
+          }
+
+          if (this.isExploding) {
+            this.explosionProgress += delta;
+            const progress = Math.min(
+              this.explosionProgress / this.EXPLOSION_DURATION,
+              1,
+            );
+
+            for (let i = 0; i < this.PARTICLE_COUNT; i++) {
+              this.positions[i * 3] += this.velocities[i * 3] * delta;
+              this.positions[i * 3 + 1] += this.velocities[i * 3 + 1] * delta;
+              this.positions[i * 3 + 2] += this.velocities[i * 3 + 2] * delta;
+
+              this.velocities[i * 3 + 1] -= 2 * delta;
+              this.alphas[i] = Math.max(0, 1 - progress);
+              this.sizes[i] *= 0.98;
+            }
+
+            this.geometry.attributes.position.needsUpdate = true;
+            this.geometry.attributes.alpha.needsUpdate = true;
+            this.geometry.attributes.size.needsUpdate = true;
+
+            this.cylinderMaterial.opacity = Math.max(
+              0,
+              0.35 * (1 - progress * 2.5),
+            );
+            this.glowCylinderMaterial.opacity = Math.max(
+              0,
+              0.1 * (1 - progress * 2.5),
+            );
+
+            this.tubeLight1.intensity = Math.max(0, 3 * (1 - progress * 2));
+            this.tubeLight2.intensity = Math.max(0, 3 * (1 - progress * 2));
+            this.tubeLight3.intensity = Math.max(0, 2 * (1 - progress * 2));
+
+            const scale = 1 + progress * 1.2;
+            this.innerCylinder.scale.set(scale, 1, scale);
+            this.glowCylinder.scale.set(scale, 1, scale);
+
+            if (progress >= 0.2 && this.contentPlanes.length > 0) {
+              const contentProgress = Math.min((progress - 0.2) / 0.8, 1);
+              this.contentOpacity = contentProgress;
+
+              for (const plane of this.contentPlanes) {
+                plane.visible = true;
+                plane.material.opacity = this.contentOpacity;
+              }
+            }
+
+            if (progress >= 0.4) {
+              this.innerCylinder.visible = false;
+              this.glowCylinder.visible = false;
+            }
+
+            if (progress >= 1 && this.onExplosionComplete) {
+              this.onExplosionComplete();
+            }
+          } else {
+            const time = this.particleMaterial.uniforms.time.value;
+            for (let i = 0; i < this.PARTICLE_COUNT; i++) {
+              const originalY = this.originalPositions[i * 3 + 1];
+              const originalX = this.originalPositions[i * 3];
+              const originalZ = this.originalPositions[i * 3 + 2];
+
+              const wave = Math.sin(time * 2 + originalY * 2) * 0.02;
+              this.positions[i * 3] = originalX + wave;
+              this.positions[i * 3 + 2] = originalZ + wave;
+            }
+            this.geometry.attributes.position.needsUpdate = true;
+
+            const pulse = Math.sin(time * 3) * 0.05 + 1;
+            this.cylinderMaterial.opacity = 0.3 + Math.sin(time * 2) * 0.05;
+            this.innerCylinder.scale.set(pulse, 1, pulse);
+
+            const lightPulse = Math.sin(time * 4) * 0.5 + 1;
+            this.tubeLight1.intensity = 2.5 + lightPulse;
+            this.tubeLight2.intensity = 2.5 + lightPulse;
+            this.tubeLight3.intensity = 1.5 + lightPulse * 0.5;
+          }
+        }
+
+        exportForLocar() {
+          return {
+            particleCount: this.PARTICLE_COUNT,
+            tubeRadius: this.TUBE_RADIUS,
+            tubeHeight: this.TUBE_HEIGHT,
+            images: [...this.images],
+            text: this.text,
+            position: this.position ? { ...this.position } : null,
+            cameraPosition: this.camera ? this.camera.position.toArray() : null,
+            groupPosition: this.group.position.toArray(),
+            groupRotation: this.group.rotation.toArray(),
+          };
+        }
+
+        setGPSPosition(lat, lon) {
+          this.position = { lat, lon };
+        }
+
+        dispose() {
+          this.clearContent();
+
+          this.geometry.dispose();
+          this.particleMaterial.dispose();
+          this.group.remove(this.particles);
+
+          this.innerCylinder.geometry.dispose();
+          this.cylinderMaterial.dispose();
+          this.glowCylinder.geometry.dispose();
+          this.glowCylinderMaterial.dispose();
+
+          this.group.remove(this.innerCylinder);
+          this.group.remove(this.glowCylinder);
+          this.group.remove(this.tubeLight1);
+          this.group.remove(this.tubeLight2);
+          this.group.remove(this.tubeLight3);
+
+          if (this.scene) {
+            this.scene.remove(this.group);
+          }
+        }
+      }
+
+      // Try to import Locar - fall back to simulation if not available
+      let LocAR = null;
+      let isLocarAvailable = false;
+
+      // Try multiple CDN sources for locar
+      const locarUrls = [
+        "https://cdn.jsdelivr.net/npm/locar@latest/dist/locar.es.js",
+        "https://unpkg.com/locar@latest/dist/locar.es.js",
+        "https://esm.sh/locar@latest",
+      ];
+
+      for (const url of locarUrls) {
+        try {
+          const locarModule = await import(url);
+          LocAR = locarModule;
+          isLocarAvailable = true;
+          console.log(`Locar.js loaded successfully from ${url}`);
+          break;
+        } catch (e) {
+          // Try next URL
+          continue;
+        }
+      }
+
+      if (!isLocarAvailable) {
+        console.warn(
+          "Locar.js not available from any CDN, using simulation mode",
+        );
+      }
+
+      // State
+      let tube = null;
+      let currentPosition = null;
+      let raycaster = null;
+      let mouse = new THREE.Vector2();
+
+      // URL params: ?image_url=...&text=...&lat=...&lon=... (lon or lng)
+      const sp = new URLSearchParams(window.location.search);
+      const URL_IMAGE = sp.get("image_url") || "";
+      const URL_TEXT = sp.get("text") || "";
+      const URL_LAT = sp.get("lat");
+      const URL_LON = sp.get("lon") || sp.get("lng");
+      const HAS_PARAMS =
+        URL_LAT != null &&
+        URL_LON != null &&
+        (URL_IMAGE !== "" || URL_TEXT !== "");
+      const FALLBACK_IMAGE =
+        "https://img.freepik.com/free-photo/front-view-kitten-outdoors_1161-75.jpg?semt=ais_hybrid&w=740&q=80";
+      const FALLBACK_TEXT =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+
+      const HARDCODED_IMAGE_URL = HAS_PARAMS ? URL_IMAGE : FALLBACK_IMAGE;
+      const HARDCODED_TEXT = HAS_PARAMS ? URL_TEXT : FALLBACK_TEXT;
+
+      // UI Elements
+      const statusEl = document.getElementById("status");
+      const gpsInfoEl = document.getElementById("gps-info");
+      const placeTubeBtn = document.getElementById("place-tube-btn");
+      const explodeBtn = document.getElementById("explode-btn");
+      const resetBtn = document.getElementById("reset-btn");
+
+      // Three.js setup
+      const container = document.getElementById("ar-container");
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      camera.position.set(0, 1.6, 5); // Eye height
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x0a0a0f, 1);
+      container.appendChild(renderer.domElement);
+
+      // Add basic environment
+      const ambientLight = new THREE.AmbientLight(0x111122, 0.5);
+      scene.add(ambientLight);
+
+      // Floor and grid removed for AR experience
+
+      // Raycaster for click detection
+      raycaster = new THREE.Raycaster();
+      raycaster.params.Points = { threshold: 0.5 };
+
+      // Locar.js integration (if available)
+      let locationBased = null;
+      let webcam = null;
+      let deviceOrientationControls = null;
+
+      async function initLocar() {
+        if (!isLocarAvailable) {
+          statusEl.textContent = "Simulation mode - Locar.js not available";
+          return false;
+        }
+
+        try {
+          // Initialize Locar.js - no LocAR class needed, just LocationBased
+          locationBased = new LocAR.LocationBased(scene, camera);
+
+          // Initialize webcam for AR background
+          webcam = new LocAR.Webcam({
+            video: {
+              facingMode: "environment",
+            },
+          });
+
+          webcam.on("webcamstarted", (ev) => {
+            scene.background = ev.texture;
+          });
+
+          webcam.on("webcamerror", (error) => {
+            console.warn(
+              `Webcam error: code ${error.code} message ${error.message}`,
+            );
+          });
+
+          // Initialize device orientation controls
+          deviceOrientationControls = new LocAR.DeviceOrientationControls(
+            camera,
+          );
+
+          deviceOrientationControls.on("deviceorientationgranted", (ev) => {
+            ev.target.connect();
+          });
+
+          deviceOrientationControls.on("deviceorientationerror", (error) => {
+            console.warn(
+              `Device orientation error: code ${error.code} message ${error.message}`,
+            );
+          });
+
+          deviceOrientationControls.init();
+
+          // Handle GPS errors
+          locationBased.on("gpserror", (error) => {
+            console.warn(`GPS error: ${error.code}`);
+          });
+
+          // Start location tracking
+          locationBased.startGps();
+
+          statusEl.textContent = "Location-based AR initialized";
+          return true;
+        } catch (e) {
+          console.error("Failed to initialize Locar.js:", e);
+          statusEl.textContent = "Failed to initialize AR - using simulation";
+          return false;
+        }
+      }
+
+      // GPS tracking (works with or without Locar)
+      function startGPSTracking() {
+        if (HAS_PARAMS) {
+          currentPosition = {
+            lat: parseFloat(URL_LAT),
+            lon: parseFloat(URL_LON),
+            accuracy: 0,
+          };
+          return;
+        }
+        if (!navigator.geolocation) {
+          gpsInfoEl.innerHTML = "<strong>GPS Status:</strong> Not supported";
+          return;
+        }
+
+        navigator.geolocation.watchPosition(
+          (position) => {
+            currentPosition = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+            };
+
+            gpsInfoEl.innerHTML = `
+                        <strong>GPS Status:</strong> Active<br>
+                        <small>Lat: ${currentPosition.lat.toFixed(6)}</small><br>
+                        <small>Lon: ${currentPosition.lon.toFixed(6)}</small><br>
+                        <small>Accuracy: ${currentPosition.accuracy.toFixed(1)}m</small>
+                    `;
+
+            placeTubeBtn.disabled = false;
+          },
+          (error) => {
+            gpsInfoEl.innerHTML = `<strong>GPS Status:</strong> Error - ${error.message}`;
+            placeTubeBtn.disabled = false;
+          },
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
+        );
+      }
+
+      // Load image from URL (optional when opened with params)
+      async function loadHardcodedImage() {
+        if (!HARDCODED_IMAGE_URL || HARDCODED_IMAGE_URL.trim() === "")
+          return null;
+        const url = HARDCODED_IMAGE_URL.trim();
+        if (url.startsWith("data:") || url.startsWith("blob:")) {
+          const response = await fetch(url);
+          return await response.blob();
+        }
+        // Same-origin API (e.g. /api/posts/[id]/media): send cookies so auth works
+        if (url.startsWith("./") || url.startsWith("/")) {
+          try {
+            const response = await fetch(url, { credentials: "include" });
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            return await response.blob();
+          } catch (e) {
+            console.warn("Could not load same-origin image, using placeholder:", e);
+            return createPlaceholderImage();
+          }
+        }
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("Failed to fetch");
+          return await response.blob();
+        } catch (e) {
+          console.warn("Could not load image from URL, using placeholder:", e);
+          return createPlaceholderImage();
+        }
+      }
+
+      // Create placeholder image
+      function createPlaceholderImage() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#4facfe";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("🐱 Cat Image", canvas.width / 2, canvas.height / 2);
+
+        return new Promise((resolve) => {
+          canvas.toBlob(resolve, "image/png");
+        });
+      }
+
+      // Create and place tube
+      async function placeTube() {
+        if (tube) {
+          tube.dispose();
+        }
+
+        // Create new tube
+        tube = new ParticleTube({
+          scene: scene,
+          camera: camera,
+          position: currentPosition,
+        });
+
+        // Position in front of camera
+        const tubeGroup = tube.getGroup();
+        tubeGroup.position.set(0, 0, 0);
+
+        // Locar.add() needs the *user's* GPS first (from its own startGps()). It throws
+        // "No initial position determined" until that's ready. When opened with params
+        // (overlay), we skip Locar positioning and always use simulation so the
+        // experience works immediately on desktop and mobile without waiting for GPS.
+        const useLocarPositioning =
+          !HAS_PARAMS && locationBased && currentPosition;
+
+        if (useLocarPositioning) {
+          try {
+            locationBased.add(
+              tubeGroup,
+              currentPosition.lon,
+              currentPosition.lat,
+            );
+            statusEl.textContent = `Tube placed at your location (${currentPosition.lat.toFixed(6)}, ${currentPosition.lon.toFixed(6)})`;
+          } catch (e) {
+            console.warn("Could not use Locar positioning:", e);
+            statusEl.textContent = "Tube placed (simulation mode)";
+          }
+        } else {
+          // Simulation: tube stays at origin. Scene is already set up; no add() needed.
+          statusEl.textContent = "Tube placed (simulation mode)";
+        }
+
+        statusEl.textContent = "Loading content...";
+        try {
+          const imageBlob = await loadHardcodedImage();
+          if (imageBlob) await tube.setImages([imageBlob]);
+          else await tube.setImages([]);
+          tube.setText(HARDCODED_TEXT || "");
+          statusEl.textContent = "Content loaded! Click tube to explode";
+        } catch (e) {
+          console.error("Failed to load content:", e);
+          tube.setText(HARDCODED_TEXT || "");
+          statusEl.textContent = "Tube placed - click to explode";
+        }
+
+        // Set up callbacks
+        tube.onContentShow = () => {
+          statusEl.textContent = "Content loaded! Click tube to explode";
+        };
+
+        tube.onExplosionStart = () => {
+          statusEl.textContent = "Exploding!";
+        };
+
+        tube.onExplosionComplete = () => {
+          statusEl.textContent = "Explosion complete - click Reset";
+        };
+
+        tube.onReset = () => {
+          statusEl.textContent = "Tube reset";
+          explodeBtn.disabled = true;
+        };
+
+        // Automatically show content
+        await tube.showContent();
+        explodeBtn.disabled = false;
+      }
+
+      // Handle click on tube
+      function onTubeClick(event) {
+        if (!tube) return;
+
+        // Calculate mouse position in normalized device coordinates
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Update raycaster
+        raycaster.setFromCamera(mouse, camera);
+
+        // Get tube group and check for intersection
+        const tubeGroup = tube.getGroup();
+        const particles = tubeGroup.children.find(
+          (child) => child.type === "Points",
+        );
+        const cylinders = tubeGroup.children.filter(
+          (child) => child.type === "Mesh",
+        );
+
+        // Check intersection with particles
+        if (particles) {
+          const intersects = raycaster.intersectObject(particles);
+          if (intersects.length > 0) {
+            tube.startExplosion();
+            return;
+          }
+        }
+
+        // Check intersection with cylinders
+        for (const cylinder of cylinders) {
+          const intersects = raycaster.intersectObject(cylinder);
+          if (intersects.length > 0) {
+            tube.startExplosion();
+            return;
+          }
+        }
+      }
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        if (tube) {
+          tube.update();
+        }
+
+        // Update device orientation controls if available
+        if (deviceOrientationControls) {
+          deviceOrientationControls.update();
+        }
+
+        // Simple camera rotation for demo (only in simulation mode)
+        if (!locationBased) {
+          const time = Date.now() * 0.0001;
+          camera.position.x = Math.sin(time) * 8;
+          camera.position.z = Math.cos(time) * 8;
+          camera.lookAt(0, 0, 0);
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      // Add click listener to canvas
+      renderer.domElement.addEventListener("click", onTubeClick);
+
+      // Event handlers
+      placeTubeBtn.addEventListener("click", () => {
+        placeTube();
+      });
+
+      explodeBtn.addEventListener("click", () => {
+        if (tube) {
+          tube.startExplosion();
+        }
+      });
+
+      resetBtn.addEventListener("click", () => {
+        if (tube) {
+          tube.reset();
+        }
+        explodeBtn.disabled = true;
+      });
+
+      // Handle resize
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // Initialize
+      async function init() {
+        statusEl.textContent = "Initializing...";
+        if (HAS_PARAMS) document.body.classList.add("param-mode");
+
+        await initLocar();
+        startGPSTracking();
+        animate();
+
+        if (HAS_PARAMS) {
+          statusEl.textContent = "Loading AR experience...";
+          await placeTube();
+          statusEl.textContent = "Click tube to explode and reveal content!";
+        } else {
+          statusEl.textContent = isLocarAvailable
+            ? 'Ready - Allow location access and click "Place Tube Here"'
+            : 'Simulation mode - Click "Place Tube Here" to start';
+        }
+      }
+
+      init();
+
+      // Export for debugging
+      window.tube = () => tube;
+      window.exportConfig = () => tube?.exportForLocar();
+    </script>
+  </body>
+</html>

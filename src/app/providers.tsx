@@ -5,6 +5,7 @@
 import type { PropsWithChildren } from "react";
 import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
 import { useEffect, useRef } from "react";
+import { ARExperienceProvider } from "@/context/ar-experience-context";
 
 // Component to sync user to MongoDB after login
 function UserSync({ children }: PropsWithChildren) {
@@ -29,7 +30,9 @@ function UserSync({ children }: PropsWithChildren) {
 export default function Providers({ children }: PropsWithChildren) {
   return (
     <Auth0Provider>
-      <UserSync>{children}</UserSync>
+      <UserSync>
+        <ARExperienceProvider>{children}</ARExperienceProvider>
+      </UserSync>
     </Auth0Provider>
   );
 }

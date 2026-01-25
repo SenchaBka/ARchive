@@ -16,6 +16,16 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### HTTPS on local network
+
+To run over HTTPS and access from other devices on your LAN (useful for AR, camera, geolocation):
+
+```bash
+npm run dev:https
+```
+
+Then open **`https://<YOUR_IP>:3000`** from phones/tablets on the same Wi‑Fi. See [docs/HTTPS-LOCAL-NETWORK.md](docs/HTTPS-LOCAL-NETWORK.md) for IP lookup, Auth0 setup, and optional mkcert certs.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

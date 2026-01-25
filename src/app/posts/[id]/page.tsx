@@ -22,7 +22,9 @@ import {
   Loader2,
   Navigation,
   RefreshCw,
+  Sparkles,
 } from "lucide-react";
+import { openARExperience } from "@/context/ar-experience-context";
 
 interface Post {
   _id: string;
@@ -347,6 +349,26 @@ export default function PostDetailPage() {
           {/* Unlocked Content */}
           {isUnlocked && (
             <div className="space-y-6">
+              {/* Enter AR - only when post has image or text */}
+              {(post.hiddenMedia?.type === "image" && post.hiddenMedia?.url) ||
+              post.hiddenText ? (
+                <Button
+                  onClick={() =>
+                    openARExperience(
+                      post.hiddenMedia?.type === "image"
+                        ? `/api/posts/${postId}/media`
+                        : "",
+                      post.hiddenText ?? "",
+                      { lat: post.coordinates.lat, lng: post.coordinates.lng }
+                    )
+                  }
+                  className="w-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 hover:from-cyan-500 hover:to-blue-500 text-white border-0"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Experience in AR
+                </Button>
+              ) : null}
+
               {/* Description */}
               {post.hiddenText && (
                 <div>
