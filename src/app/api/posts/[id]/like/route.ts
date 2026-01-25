@@ -38,9 +38,6 @@ export async function POST(
     const likedByArray = post.likedBy || [];
     const alreadyLiked = likedByArray.some((likedUserId: string) => likedUserId === userId);
 
-    console.log(`[Like] User ${userId} - Post ${id} - Already liked: ${alreadyLiked}`);
-    console.log(`[Like] Current likedBy:`, likedByArray);
-
     let updatedPost;
 
     if (alreadyLiked) {
@@ -53,7 +50,6 @@ export async function POST(
         },
         { new: true }
       );
-      console.log(`[Like] Unliked. New likes: ${updatedPost?.likes}`);
     } else {
       // Like: Use $addToSet to add user (prevents duplicates) and increment likes
       updatedPost = await Post.findByIdAndUpdate(
@@ -64,7 +60,6 @@ export async function POST(
         },
         { new: true }
       );
-      console.log(`[Like] Liked. New likes: ${updatedPost?.likes}`);
     }
 
     // Ensure likes is never negative

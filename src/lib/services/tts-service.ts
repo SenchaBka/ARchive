@@ -52,7 +52,6 @@ export async function generateTts(
     // Upload to S3
     const result = await uploadFile(audioBuffer, "tts-audio");
 
-    console.log(`[TTS] Generated and uploaded audio: ${result.url}`);
     return result.url;
   } catch (error: any) {
     console.error("[TTS] Error generating speech:", error);

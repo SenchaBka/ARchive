@@ -19,14 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Run moderation
-    console.log("[Moderate API] Starting moderation...");
-    console.log("[Moderate API] Text length:", text?.length || 0);
-    console.log("[Moderate API] Has image:", !!imageBase64);
-
     const result = await moderateContent(text, imageBase64, imageMimeType);
-
-    console.log("[Moderate API] Result:", result);
 
     return NextResponse.json({
       allowed: result.allowed,
