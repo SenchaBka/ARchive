@@ -5,10 +5,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { uploadFile } from "@/lib/services/upload-service";
 
+// Configure for larger file uploads
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     // 1. Check if user is logged in
     const session = await auth0.getSession();
+    
+    console.log("[Upload] Session check:", session?.user?.sub ? "authenticated" : "not authenticated");
     
     if (!session?.user) {
       return NextResponse.json(

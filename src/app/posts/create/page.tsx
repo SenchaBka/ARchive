@@ -61,6 +61,7 @@ export default function CreatePostPage() {
     const response = await fetch("/api/upload/media", {
       method: "POST",
       body: formData,
+      credentials: "include",
     });
 
     if (!response.ok) {
