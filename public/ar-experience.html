@@ -770,7 +770,8 @@
       const URL_IMAGE = sp.get("image_url") || "";
       const URL_TEXT = sp.get("text") || "";
       const URL_MODEL = sp.get("model_url") || "";
-      const HAS_PARAMS = URL_IMAGE !== "" || URL_TEXT !== "" || URL_MODEL !== "";
+      const HAS_PARAMS =
+        URL_IMAGE !== "" || URL_TEXT !== "" || URL_MODEL !== "";
 
       const FALLBACK_IMAGE =
         "https://img.freepik.com/free-photo/front-view-kitten-outdoors_1161-75.jpg?semt=ais_hybrid&w=740&q=80";
@@ -780,9 +781,9 @@
       const HARDCODED_IMAGE_URL = HAS_PARAMS ? URL_IMAGE : FALLBACK_IMAGE;
       const HARDCODED_TEXT = HAS_PARAMS ? URL_TEXT : FALLBACK_TEXT;
       const HARDCODED_MODEL_URL = URL_MODEL;
-      
+
       // Distance configuration - how far content appears from the user
-      const CONTENT_DISTANCE = 45; // units in front of camera (increased for better viewing)
+      const CONTENT_DISTANCE = 32; // units in front of camera (increased for better viewing)
 
       // Three.js setup
       const container = document.getElementById("ar-container");
@@ -804,9 +805,24 @@
       renderer.setClearColor(0x0a0a0f, 1);
       container.appendChild(renderer.domElement);
 
-      // Add basic environment
-      const ambientLight = new THREE.AmbientLight(0x111122, 0.5);
+      // Add lighting for models and scene
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
       scene.add(ambientLight);
+      
+      // Add directional light for better model illumination
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+      directionalLight.position.set(5, 10, 7);
+      scene.add(directionalLight);
+      
+      // Add a secondary fill light from the opposite side
+      const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      fillLight.position.set(-5, 5, -5);
+      scene.add(fillLight);
+      
+      // Add a subtle rim light from behind
+      const rimLight = new THREE.DirectionalLight(0x88ccff, 0.3);
+      rimLight.position.set(0, 0, -10);
+      scene.add(rimLight);
 
       // Floor and grid removed for AR experience
 
@@ -929,35 +945,41 @@
             modelUrl,
             (gltf) => {
               const model = gltf.scene;
-              
+
               // Calculate bounding box to center and scale the model
               const box = new THREE.Box3().setFromObject(model);
               const center = box.getCenter(new THREE.Vector3());
               const size = box.getSize(new THREE.Vector3());
-              
+
               // Center the model
               model.position.sub(center);
-              
-              // Scale model to fit nicely (target size ~5 units)
+
+              // Scale model to fit nicely - LARGER size for better visibility
               const maxDim = Math.max(size.x, size.y, size.z);
-              const targetSize = 8;
+              const targetSize = 25; // Increased from 8 to 25 for bigger model
               const scale = targetSize / maxDim;
               model.scale.setScalar(scale);
-              
+
               // Create a group to hold the model
               const modelGroup = new THREE.Group();
               modelGroup.add(model);
               
+              // Initially hide the model - will be shown after explosion
+              modelGroup.visible = false;
+
               console.log("GLTF model loaded successfully:", modelUrl);
               resolve(modelGroup);
             },
             (progress) => {
-              console.log("Loading model:", (progress.loaded / progress.total * 100).toFixed(1) + "%");
+              console.log(
+                "Loading model:",
+                ((progress.loaded / progress.total) * 100).toFixed(1) + "%",
+              );
             },
             (error) => {
               console.error("Failed to load GLTF model:", error);
               reject(error);
-            }
+            },
           );
         });
       }
@@ -967,7 +989,7 @@
         if (tube) {
           tube.dispose();
         }
-        
+
         // Remove previous model if any
         if (loadedModel) {
           scene.remove(loadedModel);
@@ -999,22 +1021,38 @@
           try {
             loadedModel = await loadGLTFModel(HARDCODED_MODEL_URL);
             if (loadedModel) {
-              // Position model near the tube (slightly below and in front)
-              loadedModel.position.set(0, -5, -CONTENT_DISTANCE + 5);
+              // Position model at the tube location (center)
+              loadedModel.position.set(0, 0, -CONTENT_DISTANCE);
               scene.add(loadedModel);
-              
+
               // Add rotation animation for the model
               loadedModel.userData.rotationSpeed = 0.5;
+              
+              // Model starts hidden, will be shown after explosion
+              loadedModel.visible = false;
             }
           } catch (e) {
             console.error("Failed to load GLTF model:", e);
           }
         }
 
+        // Set up callbacks
         tube.onContentShow = null;
         tube.onExplosionStart = null;
-        tube.onExplosionComplete = null;
-        tube.onReset = null;
+        
+        // Show model when explosion completes
+        tube.onExplosionComplete = () => {
+          if (loadedModel) {
+            loadedModel.visible = true;
+          }
+        };
+        
+        // Hide model when tube resets
+        tube.onReset = () => {
+          if (loadedModel) {
+            loadedModel.visible = false;
+          }
+        };
 
         await tube.showContent();
       }
@@ -1064,8 +1102,8 @@
           tube.update();
         }
 
-        // Animate loaded model (rotation)
-        if (loadedModel && loadedModel.userData.rotationSpeed) {
+        // Animate loaded model (rotation) - only when visible
+        if (loadedModel && loadedModel.visible && loadedModel.userData.rotationSpeed) {
           loadedModel.rotation.y += loadedModel.userData.rotationSpeed * 0.01;
         }
 
