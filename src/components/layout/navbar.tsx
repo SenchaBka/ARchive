@@ -132,7 +132,7 @@ export function Navbar() {
 
           {!isLoading && !user && (
             <>
-              <Link
+              <a
                 href="/auth/login"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
@@ -150,9 +150,9 @@ export function Navbar() {
                     Access your account
                   </span>
                 </div>
-              </Link>
+              </a>
 
-              <Link
+              <a
                 href="/auth/signup"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
@@ -170,12 +170,12 @@ export function Navbar() {
                     Create a new account
                   </span>
                 </div>
-              </Link>
+              </a>
             </>
           )}
 
           {!isLoading && user && (
-            <Link
+            <a
               href="/auth/logout"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
@@ -193,7 +193,7 @@ export function Navbar() {
                   Log out of your account
                 </span>
               </div>
-            </Link>
+            </a>
           )}
         </div>
 
