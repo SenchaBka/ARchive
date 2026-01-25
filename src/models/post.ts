@@ -44,6 +44,10 @@ const PostSchema = new Schema({
     default: 0
   },
 
+  likedBy: [{
+    type: String,  // Array of user IDs who liked this post
+  }],
+
   comments: [{
     userId: { type: String, required: true },
     text: { type: String, required: true },

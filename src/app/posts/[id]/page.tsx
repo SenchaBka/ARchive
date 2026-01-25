@@ -41,6 +41,7 @@ interface Post {
   audioUrl?: string;
   ttsAudioUrl?: string;
   likes: number;
+  likedBy?: string[];  // Array of user IDs who liked this post
   comments: { userId: string; text: string; createdAt: string }[];
   createdAt: string;
 }
@@ -53,6 +54,8 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLiking, setIsLiking] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
 
   const { latitude, longitude, error: locationError, isLoading: locationLoading, refresh: refreshLocation } = useLocation();
 
@@ -67,6 +70,7 @@ export default function PostDetailPage() {
         }
         const data = await response.json();
         setPost(data.post);
+        setHasLiked(data.hasLiked || false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load post");
       } finally {
@@ -88,6 +92,33 @@ export default function PostDetailPage() {
   const distanceToPost = post && latitude !== null && longitude !== null
     ? Math.round(haversineDistanceMeters(latitude, longitude, post.coordinates.lat, post.coordinates.lng))
     : null;
+
+  // Handle like
+  const handleLike = async () => {
+    if (!post || !isUnlocked || latitude === null || longitude === null) return;
+
+    setIsLiking(true);
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ latitude, longitude }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPost({ ...post, likes: data.likes });
+        setHasLiked(data.liked);
+      } else {
+        console.error("Failed to like:", data.error);
+      }
+    } catch (err) {
+      console.error("Error liking post:", err);
+    } finally {
+      setIsLiking(false);
+    }
+  };
 
   const formattedDate = post
     ? new Date(post.createdAt).toLocaleDateString("en-US", {
@@ -152,10 +183,31 @@ export default function PostDetailPage() {
         <CardContent className="space-y-6">
           {/* Stats - Always visible */}
           <div className="flex items-center gap-6 text-sm">
-            <span className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              <span className="font-medium">{post.likes} likes</span>
-            </span>
+            <Button
+              variant={isUnlocked ? "outline" : "ghost"}
+              size="sm"
+              className={`flex items-center gap-2 ${
+                hasLiked 
+                  ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" 
+                  : isUnlocked 
+                    ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200" 
+                    : "cursor-not-allowed opacity-50"
+              }`}
+              onClick={handleLike}
+              disabled={!isUnlocked || isLiking}
+              title={hasLiked ? "Unlike this post" : isUnlocked ? "Like this post" : "Get closer to like this post"}
+            >
+              <Heart 
+                className={`h-5 w-5 ${isLiking ? "animate-pulse" : ""} ${
+                  hasLiked 
+                    ? "fill-red-500 text-red-500" 
+                    : isUnlocked 
+                      ? "text-red-500" 
+                      : "text-muted-foreground"
+                }`} 
+              />
+              <span className="font-medium">{post.likes} {post.likes === 1 ? "like" : "likes"}</span>
+            </Button>
             <span className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-blue-500" />
               <span className="font-medium">{post.comments.length} comments</span>
