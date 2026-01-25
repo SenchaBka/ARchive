@@ -56,7 +56,7 @@ const createColoredIcon = (color: string) => {
 };
 
 const unlockedIcon = createColoredIcon("#15803d"); // Dark green for unlocked
-const lockedIcon = createColoredIcon("#525252"); // Gray for locked
+const lockedIcon = createColoredIcon("#a1a1a1"); // Light gray for locked
 
 interface Post {
   _id: string;
@@ -117,7 +117,7 @@ function LocateButton({ userLocation }: { userLocation: { lat: number; lng: numb
       onClick={handleLocate}
       disabled={!userLocation}
       size="icon"
-      className="absolute bottom-4 right-4 z-10 h-12 w-12 rounded-full shadow-lg"
+      className="absolute bottom-4 right-4 z-10 h-12 w-12 rounded-full shadow-lg bg-black/90 border border-white/20 hover:bg-black text-white"
       title="Go to my location"
     >
       <Navigation className="h-5 w-5" />
@@ -224,7 +224,7 @@ export function PostMap({
             >
               <Popup>
                 <div className="text-center p-1">
-                  <p className="font-medium">You are here</p>
+                  <p className="font-bold text-white">You are here</p>
                 </div>
               </Popup>
             </Marker>
@@ -253,15 +253,15 @@ export function PostMap({
               }}
             >
               <Popup>
-                <div className="min-w-[200px] max-w-[280px]">
-                  <h3 className="font-semibold text-base mb-2 line-clamp-2">
+                <div className="min-w-[200px] max-w-[280px] font-bold">
+                  <h3 className="font-bold text-base mb-2 line-clamp-2 text-white">
                     {post.title}
                   </h3>
 
                   {/* Status indicator */}
                   <div
-                    className={`flex items-center gap-2 mb-2 text-sm ${
-                      isUnlocked ? "text-green-600" : "text-orange-600"
+                    className={`flex items-center gap-2 mb-2 text-sm font-bold ${
+                      isUnlocked ? "text-green-400" : "text-gray-400"
                     }`}
                   >
                     {isUnlocked ? (
@@ -282,13 +282,13 @@ export function PostMap({
                   </div>
 
                   {/* Location */}
-                  <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                  <p className="text-xs text-gray-300 mb-2 flex items-center gap-1 font-bold">
                     <MapPin className="h-3 w-3" />
                     {post.approximateLocation || `${post.coordinates.lat.toFixed(4)}, ${post.coordinates.lng.toFixed(4)}`}
                   </p>
 
                   {/* Stats */}
-                  <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                  <div className="flex items-center gap-4 text-xs text-gray-300 mb-3 font-bold">
                     <span className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
                       {post.likes}
@@ -301,7 +301,7 @@ export function PostMap({
 
                   {/* View details button */}
                   <Link href={`/posts/${post._id}`}>
-                    <Button size="sm" className="w-full gap-2">
+                    <Button size="sm" className="w-full gap-2 font-bold">
                       <ExternalLink className="h-3 w-3" />
                       View Details
                     </Button>
@@ -314,8 +314,8 @@ export function PostMap({
                 center={[post.coordinates.lat, post.coordinates.lng]}
                 radius={post.radius}
                 pathOptions={{
-                  color: isUnlocked ? "#15803d" : "#525252",
-                  fillColor: isUnlocked ? "#15803d" : "#525252",
+                  color: isUnlocked ? "#15803d" : "#a1a1a1",
+                  fillColor: isUnlocked ? "#15803d" : "#a1a1a1",
                   fillOpacity: 0.1,
                   weight: 2,
                   dashArray: isUnlocked ? undefined : "5, 5",
