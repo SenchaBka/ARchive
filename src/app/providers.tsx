@@ -8,19 +8,20 @@ import { useEffect, useRef } from "react";
 
 // Component to sync user to MongoDB after login
 function UserSync({ children }: PropsWithChildren) {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, error } = useUser();
   const hasSynced = useRef(false);
 
   useEffect(() => {
-    // Only sync once when user logs in
-    if (user && !isLoading && !hasSynced.current) {
+    // Only sync once when user logs in (not when there's an error or no user)
+    if (user && !isLoading && !error && !hasSynced.current) {
       hasSynced.current = true;
-      fetch('/api/user/sync', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => console.log('User synced:', data))
-        .catch(err => console.error('Failed to sync user:', err));
+      fetch("/api/user/sync", { method: "POST" })
+        .then((res) => res.json())
+        .catch(() => {
+          // Silently fail - user sync is not critical
+        });
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, error]);
 
   return <>{children}</>;
 }
@@ -28,9 +29,7 @@ function UserSync({ children }: PropsWithChildren) {
 export default function Providers({ children }: PropsWithChildren) {
   return (
     <Auth0Provider>
-      <UserSync>
-        {children}
-      </UserSync>
+      <UserSync>{children}</UserSync>
     </Auth0Provider>
   );
 }
