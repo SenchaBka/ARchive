@@ -38,6 +38,26 @@
       import * as THREE from "three";
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
+      // Polyfill for roundRect (not available in all browsers)
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+          if (typeof r === 'number') r = [r, r, r, r];
+          const [tl, tr, br, bl] = r;
+          this.beginPath();
+          this.moveTo(x + tl, y);
+          this.lineTo(x + w - tr, y);
+          this.quadraticCurveTo(x + w, y, x + w, y + tr);
+          this.lineTo(x + w, y + h - br);
+          this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+          this.lineTo(x + bl, y + h);
+          this.quadraticCurveTo(x, y + h, x, y + h - bl);
+          this.lineTo(x, y + tl);
+          this.quadraticCurveTo(x, y, x + tl, y);
+          this.closePath();
+          return this;
+        };
+      }
+
       // Inline ParticleTube class
       class ParticleTube {
         constructor(config = {}) {
@@ -371,8 +391,9 @@
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
 
-          canvas.width = 2200;
-          canvas.height = 8000;
+          // Wider canvas for two-column layout
+          canvas.width = 4000;
+          canvas.height = 4000;
 
           return canvas;
         }
@@ -381,9 +402,22 @@
           const canvas = this.createContentCanvas();
           const ctx = canvas.getContext("2d");
 
-          let yOffset = 200;
-          const padding = 20;
+          const padding = 80;
+          const columnGap = 100;
+          const topPadding = 150;
+          
+          // Two-column layout
+          const leftColumnWidth = (canvas.width - padding * 2 - columnGap) * 0.45;
+          const rightColumnWidth = (canvas.width - padding * 2 - columnGap) * 0.55;
+          const leftColumnX = padding;
+          const rightColumnX = padding + leftColumnWidth + columnGap;
 
+          // Draw subtle background panel for better readability
+          ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+          ctx.roundRect(padding - 40, topPadding - 40, canvas.width - padding * 2 + 80, canvas.height - topPadding - padding + 80, 40);
+          ctx.fill();
+
+          // Left column: Image/Model placeholder
           if (this.images.length > 0) {
             const imagePromise = new Promise((res) => {
               const img = new Image();
@@ -395,58 +429,79 @@
             const img = await imagePromise;
 
             if (img) {
-              const availableWidth = canvas.width - padding * 2;
-              const imageHeight = 20000;
-              const imageWidth = availableWidth;
+              const maxImageHeight = canvas.height - topPadding - padding - 100;
+              const maxImageWidth = leftColumnWidth;
 
-              let drawWidth = imageWidth;
-              let drawHeight = imageHeight;
+              let drawWidth, drawHeight;
               const imgAspect = img.width / img.height;
-              const targetAspect = imageWidth / imageHeight;
 
-              if (imgAspect > targetAspect) {
-                drawHeight = imageWidth / imgAspect;
+              if (imgAspect > maxImageWidth / maxImageHeight) {
+                // Image is wider than container
+                drawWidth = maxImageWidth;
+                drawHeight = maxImageWidth / imgAspect;
               } else {
-                drawWidth = imageHeight * imgAspect;
+                // Image is taller than container
+                drawHeight = maxImageHeight;
+                drawWidth = maxImageHeight * imgAspect;
               }
 
-              const xPos = (canvas.width - drawWidth) / 2;
-              const yPos = yOffset;
+              // Center image in left column
+              const xPos = leftColumnX + (leftColumnWidth - drawWidth) / 2;
+              const yPos = topPadding + (maxImageHeight - drawHeight) / 2;
 
+              // Draw image shadow/glow effect
+              ctx.shadowColor = "rgba(136, 204, 255, 0.3)";
+              ctx.shadowBlur = 40;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 10;
+
+              // Draw rounded image container
+              ctx.save();
+              ctx.beginPath();
+              ctx.roundRect(xPos - 10, yPos - 10, drawWidth + 20, drawHeight + 20, 20);
+              ctx.clip();
               ctx.drawImage(img, xPos, yPos, drawWidth, drawHeight);
+              ctx.restore();
 
-              yOffset += drawHeight + 20;
+              // Reset shadow
+              ctx.shadowColor = "transparent";
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
             }
           }
 
+          // Right column: Text content
           if (this.text) {
-            yOffset += 10;
-
-            ctx.fillStyle = "#000000";
-            ctx.font = '200px "Segoe UI", sans-serif';
+            // Text styling
+            const fontSize = 120;
+            const lineHeight = fontSize * 1.5;
+            ctx.fillStyle = "#1a1a2e";
+            ctx.font = `500 ${fontSize}px "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = "left";
+            ctx.textBaseline = "top";
 
-            const maxCharsPerLine = 10;
-            const lineHeight = 250;
-            const textPadding = padding;
+            // Calculate characters per line based on column width
+            const avgCharWidth = fontSize * 0.55;
+            const maxCharsPerLine = Math.floor(rightColumnWidth / avgCharWidth);
 
             let remainingText = this.text;
-            let lineY = yOffset;
+            let lineY = topPadding + 20;
+            const maxY = canvas.height - padding - lineHeight;
 
-            while (remainingText.length > 0 && lineY < canvas.height - 50) {
+            // Word wrap text
+            while (remainingText.length > 0 && lineY < maxY) {
               let line = "";
 
               if (remainingText.length <= maxCharsPerLine) {
                 line = remainingText;
                 remainingText = "";
               } else {
+                // Find last space within line limit
                 let cutPoint = maxCharsPerLine;
-                const spaceIndex = remainingText.lastIndexOf(
-                  " ",
-                  maxCharsPerLine,
-                );
+                const spaceIndex = remainingText.lastIndexOf(" ", maxCharsPerLine);
 
-                if (spaceIndex > 0) {
+                if (spaceIndex > maxCharsPerLine * 0.3) {
                   cutPoint = spaceIndex;
                 }
 
@@ -454,12 +509,15 @@
                 remainingText = remainingText.substring(cutPoint).trim();
               }
 
-              ctx.fillText(line, textPadding, lineY);
+              ctx.fillText(line, rightColumnX, lineY);
               lineY += lineHeight;
             }
 
-            if (remainingText.length > 0 && lineY < canvas.height - 50) {
-              ctx.fillText("...", textPadding, lineY);
+            // Show ellipsis if text was truncated
+            if (remainingText.length > 0) {
+              ctx.fillStyle = "#666";
+              ctx.font = `italic ${fontSize * 0.9}px "Segoe UI", sans-serif`;
+              ctx.fillText("...", rightColumnX, lineY);
             }
           }
 
@@ -478,7 +536,7 @@
           texture.needsUpdate = true;
 
           const aspectRatio = contentCanvas.height / contentCanvas.width;
-          const planeWidth = 24.0;
+          const planeWidth = 36.0; // Wider plane for two-column layout
           const planeHeight = planeWidth * aspectRatio;
 
           const planeGeometry = new THREE.PlaneGeometry(
