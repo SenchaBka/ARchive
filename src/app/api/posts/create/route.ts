@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Check if user is logged in
     const session = await auth0.getSession();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: "You must be logged in to create a post" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -39,16 +39,13 @@ export async function POST(request: NextRequest) {
 
     // 4. Validate required fields
     if (!title || title.trim() === "") {
-      return NextResponse.json(
-        { error: "Title is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     if (!latitude || !longitude) {
       return NextResponse.json(
         { error: "Location coordinates are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,21 +71,23 @@ export async function POST(request: NextRequest) {
       userId: userId,
       title: title.trim(),
       hiddenText: description || "",
-      hiddenMedia: mediaUrl ? {
-        type: mediaType || "image",
-        url: mediaUrl
-      } : undefined,
+      hiddenMedia: mediaUrl
+        ? {
+            type: mediaType || "image",
+            url: mediaUrl,
+          }
+        : undefined,
       coordinates: {
         lat: latitude,
-        lng: longitude
+        lng: longitude,
       },
       approximateLocation: address || "",
       radius: radius || 100,
-      audioUrl: audioUrl || "",        // User-uploaded audio
-      ttsAudioUrl: ttsAudioUrl || "",  // TTS-generated audio
+      audioUrl: audioUrl || "", // User-uploaded audio
+      ttsAudioUrl: ttsAudioUrl || "", // TTS-generated audio
       likes: 0,
       comments: [],
-      moderationStatus: "approved" // Auto-approve for now
+      moderationStatus: "approved", // Auto-approve for now
     });
 
     // 8. Save to MongoDB
@@ -98,14 +97,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Post created successfully",
-      post: newPost
+      post: newPost,
     });
-
   } catch (error) {
     console.error("Error creating post:", error);
     return NextResponse.json(
       { error: "Failed to create post" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

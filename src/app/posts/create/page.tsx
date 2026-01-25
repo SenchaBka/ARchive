@@ -54,7 +54,10 @@ export default function CreatePostPage() {
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
   // Function to upload a file and get the URL
-  const uploadFile = async (file: File, type: "media" | "audio"): Promise<string | null> => {
+  const uploadFile = async (
+    file: File,
+    type: "media" | "audio",
+  ): Promise<string | null> => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
@@ -89,7 +92,7 @@ export default function CreatePostPage() {
       // Step 1: Upload media file if exists
       let mediaUrl: string | null = null;
       let mediaType: string | null = null;
-      
+
       if (data.media) {
         mediaUrl = await uploadFile(data.media, "media");
         mediaType = getMediaType(data.media);
@@ -99,17 +102,17 @@ export default function CreatePostPage() {
       // If audio was uploaded in step-audio, audioUrl is already set
       // Only upload if we have a file but no URL yet
       let audioUrl: string | null = data.audioUrl;
-      
+
       if (data.audio && !audioUrl) {
         // Fallback: upload audio if not already uploaded
         const formData = new FormData();
         formData.append("audio", data.audio);
-        
+
         const audioResponse = await fetch("/api/upload/audio", {
           method: "POST",
           body: formData,
         });
-        
+
         if (audioResponse.ok) {
           const audioResult = await audioResponse.json();
           audioUrl = audioResult.url;
@@ -144,7 +147,6 @@ export default function CreatePostPage() {
 
       // Success! Redirect to posts page
       router.push("/posts");
-
     } catch (err) {
       console.error("Error creating post:", err);
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -155,30 +157,32 @@ export default function CreatePostPage() {
 
   const canProceed = () => {
     if (step === 1) return data.title.trim().length > 0;
-    if (step === 2) return data.latitude !== null || data.address.trim().length > 0;
+    if (step === 2)
+      return data.latitude !== null || data.address.trim().length > 0;
     return true;
   };
 
   return (
     <div className="min-h-screen bg-black">
       {/* Subtle gradient background */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 50%)"
+          background:
+            "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 50%)",
         }}
       />
-      
+
       <div className="relative mx-auto max-w-2xl px-4 pt-24 pb-12 md:pb-20">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 
+          <h1
             className="text-2xl font-semibold tracking-tight"
             style={{ color: "#fafafa" }}
           >
             Create a Post
           </h1>
-          <p 
+          <p
             className="mt-2 text-sm"
             style={{ color: "rgba(255,255,255,0.5)" }}
           >
@@ -195,23 +199,33 @@ export default function CreatePostPage() {
               const isCurrent = step === s.id;
 
               return (
-                <div key={s.id} className="flex items-center flex-1 last:flex-none">
+                <div
+                  key={s.id}
+                  className="flex items-center flex-1 last:flex-none"
+                >
                   {/* Step Circle */}
                   <button
                     onClick={() => s.id < step && setStep(s.id)}
                     disabled={s.id > step}
                     className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ease-out"
                     style={{
-                      backgroundColor: isCompleted || isCurrent 
-                        ? "#fafafa" 
-                        : "rgba(255,255,255,0.1)",
-                      color: isCompleted || isCurrent 
-                        ? "#000000" 
-                        : "rgba(255,255,255,0.5)",
-                      boxShadow: isCurrent 
-                        ? "0 0 0 4px rgba(255,255,255,0.1)" 
+                      backgroundColor:
+                        isCompleted || isCurrent
+                          ? "#fafafa"
+                          : "rgba(255,255,255,0.1)",
+                      color:
+                        isCompleted || isCurrent
+                          ? "#000000"
+                          : "rgba(255,255,255,0.5)",
+                      boxShadow: isCurrent
+                        ? "0 0 0 4px rgba(255,255,255,0.1)"
                         : "none",
-                      cursor: s.id < step ? "pointer" : s.id > step ? "not-allowed" : "default"
+                      cursor:
+                        s.id < step
+                          ? "pointer"
+                          : s.id > step
+                            ? "not-allowed"
+                            : "default",
                     }}
                   >
                     {isCompleted ? (
@@ -227,9 +241,8 @@ export default function CreatePostPage() {
                       <div
                         className="h-[2px] rounded-full transition-colors duration-300"
                         style={{
-                          backgroundColor: step > s.id 
-                            ? "#fafafa" 
-                            : "rgba(255,255,255,0.15)"
+                          backgroundColor:
+                            step > s.id ? "#fafafa" : "rgba(255,255,255,0.15)",
                         }}
                       />
                     </div>
@@ -245,18 +258,24 @@ export default function CreatePostPage() {
               <div
                 key={s.id}
                 className="text-center"
-                style={{ 
-                  textAlign: s.id === 1 ? "left" : s.id === STEPS.length ? "right" : "center",
-                  width: s.id === 1 || s.id === STEPS.length ? "40px" : "auto", 
-                  flex: s.id === 1 || s.id === STEPS.length ? "none" : "1" 
+                style={{
+                  textAlign:
+                    s.id === 1
+                      ? "left"
+                      : s.id === STEPS.length
+                        ? "right"
+                        : "center",
+                  width: s.id === 1 || s.id === STEPS.length ? "40px" : "auto",
+                  flex: s.id === 1 || s.id === STEPS.length ? "none" : "1",
                 }}
               >
                 <p
                   className="text-xs font-medium transition-colors"
-                  style={{ 
-                    color: step >= s.id 
-                      ? "rgba(255,255,255,0.9)" 
-                      : "rgba(255,255,255,0.4)" 
+                  style={{
+                    color:
+                      step >= s.id
+                        ? "rgba(255,255,255,0.9)"
+                        : "rgba(255,255,255,0.4)",
                   }}
                 >
                   {s.title}
@@ -267,24 +286,21 @@ export default function CreatePostPage() {
         </div>
 
         {/* Content Card */}
-        <div 
+        <div
           className="rounded-xl"
           style={{
             backgroundColor: "rgba(255,255,255,0.03)",
             border: "1px solid rgba(255,255,255,0.1)",
-            backdropFilter: "blur(20px)"
+            backdropFilter: "blur(20px)",
           }}
         >
           <div className="p-8">
             {/* Step Header */}
             <div className="mb-8">
-              <h2 
-                className="text-lg font-medium"
-                style={{ color: "#fafafa" }}
-              >
+              <h2 className="text-lg font-medium" style={{ color: "#fafafa" }}>
                 {STEPS[step - 1].title}
               </h2>
-              <p 
+              <p
                 className="mt-1 text-sm"
                 style={{ color: "rgba(255,255,255,0.5)" }}
               >
@@ -322,9 +338,11 @@ export default function CreatePostPage() {
               disabled={!canProceed()}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200"
               style={{
-                backgroundColor: canProceed() ? "#fafafa" : "rgba(255,255,255,0.1)",
+                backgroundColor: canProceed()
+                  ? "#fafafa"
+                  : "rgba(255,255,255,0.1)",
                 color: canProceed() ? "#000000" : "rgba(255,255,255,0.3)",
-                cursor: canProceed() ? "pointer" : "not-allowed"
+                cursor: canProceed() ? "pointer" : "not-allowed",
               }}
             >
               Continue
@@ -336,9 +354,11 @@ export default function CreatePostPage() {
               disabled={isSubmitting}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200"
               style={{
-                backgroundColor: isSubmitting ? "rgba(255,255,255,0.1)" : "#fafafa",
+                backgroundColor: isSubmitting
+                  ? "rgba(255,255,255,0.1)"
+                  : "#fafafa",
                 color: isSubmitting ? "rgba(255,255,255,0.5)" : "#000000",
-                cursor: isSubmitting ? "not-allowed" : "pointer"
+                cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
               {isSubmitting ? (
@@ -358,19 +378,21 @@ export default function CreatePostPage() {
 
         {/* Error Message */}
         {error && (
-          <div 
+          <div
             className="mt-4 p-4 rounded-lg"
             style={{
               backgroundColor: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.3)"
+              border: "1px solid rgba(239, 68, 68, 0.3)",
             }}
           >
-            <p className="text-sm" style={{ color: "#f87171" }}>{error}</p>
+            <p className="text-sm" style={{ color: "#f87171" }}>
+              {error}
+            </p>
           </div>
         )}
 
         {/* Step Counter */}
-        <p 
+        <p
           className="mt-6 text-center text-xs"
           style={{ color: "rgba(255,255,255,0.3)" }}
         >

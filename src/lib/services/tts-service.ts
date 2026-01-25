@@ -5,7 +5,8 @@ import { uploadFile } from "./upload-service";
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 // Default voice ID from env (ePiPWpzcHZrcqRzFrgQg) or fallback to Rachel
-const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
+const DEFAULT_VOICE_ID =
+  process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 
 /**
  * Generate TTS audio from text using ElevenLabs and upload to S3
@@ -15,7 +16,7 @@ const DEFAULT_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWA
  */
 export async function generateTts(
   text: string,
-  voiceId?: string | null
+  voiceId?: string | null,
 ): Promise<string> {
   // Use provided voiceId or default from env
   const selectedVoiceId = voiceId || DEFAULT_VOICE_ID;
@@ -43,13 +44,13 @@ export async function generateTts(
     // Convert ReadableStream to Buffer
     const reader = audioStream.getReader();
     const chunks: Uint8Array[] = [];
-    
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       if (value) chunks.push(value);
     }
-    
+
     const audioBuffer = Buffer.concat(chunks);
 
     // Upload to S3
