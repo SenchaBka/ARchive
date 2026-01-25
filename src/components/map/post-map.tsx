@@ -11,7 +11,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Navigation, Heart, MessageCircle, Lock, Unlock, ExternalLink } from "lucide-react";
+import { MapPin, Navigation, Heart, MessageCircle, Lock, Unlock, ExternalLink, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -299,13 +299,26 @@ export function PostMap({
                     </span>
                   </div>
 
-                  {/* View details button */}
-                  <Link href={`/posts/${post._id}`}>
-                    <Button size="sm" className="w-full gap-2 font-bold">
-                      <ExternalLink className="h-3 w-3" />
-                      View Details
+                  {/* Action buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link href={`/posts/${post._id}`}>
+                      <Button size="sm" className="w-full gap-2 font-bold">
+                        <ExternalLink className="h-3 w-3" />
+                        Details
+                      </Button>
+                    </Link>
+                    <Button 
+                      size="sm" 
+                      className="w-full gap-2 font-bold"
+                      onClick={() => {
+                        const url = `https://www.google.com/maps/dir/?api=1&destination=${post.coordinates.lat},${post.coordinates.lng}`;
+                        window.open(url, '_blank');
+                      }}
+                    >
+                      <Route className="h-3 w-3" />
+                      Directions
                     </Button>
-                  </Link>
+                  </div>
                 </div>
               </Popup>
 
