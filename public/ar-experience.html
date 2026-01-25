@@ -104,9 +104,9 @@
       // Inline ParticleTube class
       class ParticleTube {
         constructor(config = {}) {
-          this.PARTICLE_COUNT = config.particleCount || 60000;
-          this.TUBE_RADIUS = config.tubeRadius || 0.6;
-          this.TUBE_HEIGHT = config.tubeHeight || 80;
+          this.PARTICLE_COUNT = config.particleCount || 180000;
+          this.TUBE_RADIUS = config.tubeRadius || 1.8;
+          this.TUBE_HEIGHT = config.tubeHeight || 240;
           this.MAX_IMAGES = config.maxImages || 5;
           this.MAX_TEXT_LENGTH = config.maxTextLength || 1000;
           this.IMAGE_MAX_SIZE = config.imageMaxSize || 512;
@@ -163,15 +163,15 @@
         }
 
         createLighting() {
-          this.tubeLight1 = new THREE.PointLight(0x88ccff, 3, 15);
+          this.tubeLight1 = new THREE.PointLight(0x88ccff, 3, 45);
           this.tubeLight1.position.set(0, this.TUBE_HEIGHT * 0.3, 0);
           this.group.add(this.tubeLight1);
 
-          this.tubeLight2 = new THREE.PointLight(0x88ccff, 3, 15);
+          this.tubeLight2 = new THREE.PointLight(0x88ccff, 3, 45);
           this.tubeLight2.position.set(0, -this.TUBE_HEIGHT * 0.3, 0);
           this.group.add(this.tubeLight2);
 
-          this.tubeLight3 = new THREE.PointLight(0xaaddff, 2, 12);
+          this.tubeLight3 = new THREE.PointLight(0xaaddff, 2, 36);
           this.tubeLight3.position.set(0, 0, 0);
           this.group.add(this.tubeLight3);
         }
@@ -434,8 +434,8 @@
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
 
-          canvas.width = 1024;
-          canvas.height = 6144;
+          canvas.width = 2048;
+          canvas.height = 16384;
 
           return canvas;
         }
@@ -459,7 +459,7 @@
 
             if (img) {
               const availableWidth = canvas.width - padding * 2;
-              const imageHeight = 5000;
+              const imageHeight = 10000;
               const imageWidth = availableWidth;
 
               let drawWidth = imageWidth;
@@ -486,11 +486,11 @@
             yOffset += 10;
 
             ctx.fillStyle = "#000000";
-            ctx.font = '32px "Segoe UI", sans-serif';
+            ctx.font = '160px "Segoe UI", sans-serif';
             ctx.textAlign = "left";
 
-            const maxCharsPerLine = 38;
-            const lineHeight = 40;
+            const maxCharsPerLine = 12;
+            const lineHeight = 200;
             const textPadding = padding;
 
             let remainingText = this.text;
@@ -541,7 +541,7 @@
           texture.needsUpdate = true;
 
           const aspectRatio = contentCanvas.height / contentCanvas.width;
-          const planeWidth = 6.0;
+          const planeWidth = 12.0;
           const planeHeight = planeWidth * aspectRatio;
 
           const planeGeometry = new THREE.PlaneGeometry(
