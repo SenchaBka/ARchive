@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Heart, MessageCircle, Clock, Eye, Volume2 } from "lucide-react";
+import { MapPin, Heart, MessageCircle, Clock, Eye, Lock, Volume2, Mic } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -13,7 +13,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AudioPlayer } from "@/components/ui/audio-player";
 
 interface PostCardProps {
   post: {
@@ -32,8 +31,8 @@ interface PostCardProps {
       type: "image" | "model" | "gif";
       url: string;
     };
-    audioUrl?: string;      // User-uploaded audio
-    ttsAudioUrl?: string;   // TTS-generated audio from description
+    audioUrl?: string;
+    ttsAudioUrl?: string;
   };
 }
 
@@ -44,8 +43,9 @@ export function PostCard({ post }: PostCardProps) {
     year: "numeric",
   });
 
-  // Debug: log audioUrl
-  console.log(`[PostCard ${post._id}] audioUrl:`, post.audioUrl);
+  const hasAudio = (post.audioUrl && post.audioUrl.trim() !== "") || 
+                   (post.ttsAudioUrl && post.ttsAudioUrl.trim() !== "");
+  const hasMedia = post.hiddenMedia && post.hiddenMedia.url;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -58,37 +58,27 @@ export function PostCard({ post }: PostCardProps) {
       </CardHeader>
       
       <CardContent className="space-y-3">
-        {post.hiddenMedia && post.hiddenMedia.type === "image" && (
-          <div className="relative h-40 w-full overflow-hidden rounded-md bg-muted">
-            <img
-              src={post.hiddenMedia.url}
-              alt={post.title}
-              className="object-cover w-full h-full"
-            />
-          </div>
-        )}
-
-        {/* TTS Audio Player - Description */}
-        {post.ttsAudioUrl && post.ttsAudioUrl.trim() !== "" && (
-          <div className="pt-2">
-            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-              <Volume2 className="h-4 w-4" />
-              <span>Listen to description</span>
-            </div>
-            <AudioPlayer src={post.ttsAudioUrl} compact />
-          </div>
-        )}
-
-        {/* Uploaded Audio Player */}
-        {post.audioUrl && post.audioUrl.trim() !== "" && (
-          <div className="pt-2">
-            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-              <Volume2 className="h-4 w-4" />
-              <span>Audio attachment</span>
-            </div>
-            <AudioPlayer src={post.audioUrl} compact />
-          </div>
-        )}
+        {/* Hidden content indicators */}
+        <div className="flex flex-wrap gap-2">
+          {hasMedia && (
+            <span className="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs text-muted-foreground">
+              <Lock className="h-3 w-3" />
+              Hidden media
+            </span>
+          )}
+          {post.ttsAudioUrl && post.ttsAudioUrl.trim() !== "" && (
+            <span className="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs text-muted-foreground">
+              <Volume2 className="h-3 w-3" />
+              Description audio
+            </span>
+          )}
+          {post.audioUrl && post.audioUrl.trim() !== "" && (
+            <span className="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-xs text-muted-foreground">
+              <Mic className="h-3 w-3" />
+              Audio attachment
+            </span>
+          )}
+        </div>
         
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
