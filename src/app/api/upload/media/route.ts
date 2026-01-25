@@ -1,11 +1,9 @@
 // POST /api/upload/media
-// This endpoint handles file uploads and saves them to the public folder
-// In production, you'd use cloud storage (AWS S3, Cloudinary, etc.)
+// This endpoint handles file uploads to AWS S3
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadFile } from "@/lib/services/upload-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,32 +29,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Create unique filename
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${timestamp}-${originalName}`;
-
-    // 4. Determine upload folder based on type
+    // 3. Determine upload folder based on type
     const folder = type === "audio" ? "audio" : "images";
-    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
 
-    // 5. Create directory if it doesn't exist
-    await mkdir(uploadDir, { recursive: true });
+    // 4. Upload to S3
+    const result = await uploadFile(file, folder);
 
-    // 6. Convert file to buffer and save
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const filePath = path.join(uploadDir, filename);
-    
-    await writeFile(filePath, buffer);
-
-    // 7. Return the public URL
-    const url = `/uploads/${folder}/${filename}`;
-
+    // 5. Return the S3 URL
     return NextResponse.json({
       success: true,
-      url: url,
-      filename: filename
+      url: result.url,
+      key: result.key
     });
 
   } catch (error) {
