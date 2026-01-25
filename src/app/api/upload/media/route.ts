@@ -35,8 +35,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Determine upload folder based on type
-    const folder = type === "audio" ? "audio" : "images";
+    // 3. Determine upload folder based on type and file extension
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const isModel = ["glb", "gltf", "obj"].includes(extension || "");
+    const folder = type === "audio" ? "audio" : isModel ? "models" : "images";
 
     // 4. Upload to S3
     const result = await uploadFile(file, folder);

@@ -36,6 +36,7 @@
     </script>
     <script type="module">
       import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
       // Inline ParticleTube class
       class ParticleTube {
@@ -764,11 +765,12 @@
       let raycaster = null;
       let mouse = new THREE.Vector2();
 
-      // URL params: ?image_url=...&text=...
+      // URL params: ?image_url=...&text=...&model_url=...
       const sp = new URLSearchParams(window.location.search);
       const URL_IMAGE = sp.get("image_url") || "";
       const URL_TEXT = sp.get("text") || "";
-      const HAS_PARAMS = URL_IMAGE !== "" || URL_TEXT !== "";
+      const URL_MODEL = sp.get("model_url") || "";
+      const HAS_PARAMS = URL_IMAGE !== "" || URL_TEXT !== "" || URL_MODEL !== "";
 
       const FALLBACK_IMAGE =
         "https://img.freepik.com/free-photo/front-view-kitten-outdoors_1161-75.jpg?semt=ais_hybrid&w=740&q=80";
@@ -777,6 +779,10 @@
 
       const HARDCODED_IMAGE_URL = HAS_PARAMS ? URL_IMAGE : FALLBACK_IMAGE;
       const HARDCODED_TEXT = HAS_PARAMS ? URL_TEXT : FALLBACK_TEXT;
+      const HARDCODED_MODEL_URL = URL_MODEL;
+      
+      // Distance configuration - how far content appears from the user
+      const CONTENT_DISTANCE = 45; // units in front of camera (increased for better viewing)
 
       // Three.js setup
       const container = document.getElementById("ar-container");
@@ -911,10 +917,61 @@
         });
       }
 
+      // GLTF Model loader
+      let loadedModel = null;
+      const gltfLoader = new GLTFLoader();
+
+      async function loadGLTFModel(modelUrl) {
+        if (!modelUrl || modelUrl.trim() === "") return null;
+
+        return new Promise((resolve, reject) => {
+          gltfLoader.load(
+            modelUrl,
+            (gltf) => {
+              const model = gltf.scene;
+              
+              // Calculate bounding box to center and scale the model
+              const box = new THREE.Box3().setFromObject(model);
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              
+              // Center the model
+              model.position.sub(center);
+              
+              // Scale model to fit nicely (target size ~5 units)
+              const maxDim = Math.max(size.x, size.y, size.z);
+              const targetSize = 8;
+              const scale = targetSize / maxDim;
+              model.scale.setScalar(scale);
+              
+              // Create a group to hold the model
+              const modelGroup = new THREE.Group();
+              modelGroup.add(model);
+              
+              console.log("GLTF model loaded successfully:", modelUrl);
+              resolve(modelGroup);
+            },
+            (progress) => {
+              console.log("Loading model:", (progress.loaded / progress.total * 100).toFixed(1) + "%");
+            },
+            (error) => {
+              console.error("Failed to load GLTF model:", error);
+              reject(error);
+            }
+          );
+        });
+      }
+
       // Create and place tube
       async function placeTube() {
         if (tube) {
           tube.dispose();
+        }
+        
+        // Remove previous model if any
+        if (loadedModel) {
+          scene.remove(loadedModel);
+          loadedModel = null;
         }
 
         // Create new tube
@@ -923,9 +980,9 @@
           camera: camera,
         });
 
-        // Position tube directly in front of user at fixed distance
+        // Position tube directly in front of user at configured distance
         const tubeGroup = tube.getGroup();
-        tubeGroup.position.set(0, 0, -22.5); // 22.5 units in front of camera
+        tubeGroup.position.set(0, 0, -CONTENT_DISTANCE);
 
         try {
           const imageBlob = await loadHardcodedImage();
@@ -935,6 +992,23 @@
         } catch (e) {
           console.error("Failed to load content:", e);
           tube.setText(HARDCODED_TEXT || "");
+        }
+
+        // Load GLTF model if provided
+        if (HARDCODED_MODEL_URL) {
+          try {
+            loadedModel = await loadGLTFModel(HARDCODED_MODEL_URL);
+            if (loadedModel) {
+              // Position model near the tube (slightly below and in front)
+              loadedModel.position.set(0, -5, -CONTENT_DISTANCE + 5);
+              scene.add(loadedModel);
+              
+              // Add rotation animation for the model
+              loadedModel.userData.rotationSpeed = 0.5;
+            }
+          } catch (e) {
+            console.error("Failed to load GLTF model:", e);
+          }
         }
 
         tube.onContentShow = null;
@@ -990,6 +1064,11 @@
           tube.update();
         }
 
+        // Animate loaded model (rotation)
+        if (loadedModel && loadedModel.userData.rotationSpeed) {
+          loadedModel.rotation.y += loadedModel.userData.rotationSpeed * 0.01;
+        }
+
         // Update device orientation controls if available
         if (deviceOrientationControls) {
           deviceOrientationControls.update();
@@ -998,7 +1077,7 @@
           const time = Date.now() * 0.0001;
           camera.position.x = Math.sin(time) * 8;
           camera.position.z = Math.cos(time) * 8;
-          camera.lookAt(0, 0, -22.5);
+          camera.lookAt(0, 0, -CONTENT_DISTANCE);
         }
 
         renderer.render(scene, camera);

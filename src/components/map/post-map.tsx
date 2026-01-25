@@ -11,7 +11,16 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Navigation, Heart, MessageCircle, Lock, Unlock, ExternalLink, Route } from "lucide-react";
+import {
+  MapPin,
+  Navigation,
+  Heart,
+  MessageCircle,
+  Lock,
+  Unlock,
+  ExternalLink,
+  Route,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Fix Leaflet default marker icon issue
@@ -101,7 +110,11 @@ function MapController({
 }
 
 // Component for locating user
-function LocateButton({ userLocation }: { userLocation: { lat: number; lng: number } | null }) {
+function LocateButton({
+  userLocation,
+}: {
+  userLocation: { lat: number; lng: number } | null;
+}) {
   const map = useMap();
 
   const handleLocate = () => {
@@ -130,7 +143,7 @@ function haversineDistance(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371000; // Earth's radius in meters
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -158,8 +171,8 @@ export function PostMap({
   const defaultCenter: [number, number] = userLocation
     ? [userLocation.lat, userLocation.lng]
     : posts.length > 0
-    ? [posts[0].coordinates.lat, posts[0].coordinates.lng]
-    : [45.5017, -73.5673]; // Montreal as fallback
+      ? [posts[0].coordinates.lat, posts[0].coordinates.lng]
+      : [45.5017, -73.5673]; // Montreal as fallback
 
   useEffect(() => {
     setIsMounted(true);
@@ -239,10 +252,11 @@ export function PostMap({
                 userLocation.lat,
                 userLocation.lng,
                 post.coordinates.lat,
-                post.coordinates.lng
+                post.coordinates.lng,
               )
             : null;
-          const isCurrentlyInRange = distance !== null && distance <= post.radius;
+          const isCurrentlyInRange =
+            distance !== null && distance <= post.radius;
           const hasPreviouslyUnlocked = discoveredPostIds.includes(post._id);
           const isUnlocked = isCurrentlyInRange || hasPreviouslyUnlocked;
 
@@ -256,7 +270,7 @@ export function PostMap({
               }}
             >
               <Popup>
-                <div className="min-w-[200px] max-w-[280px] font-bold">
+                <div className="min-w-[200px] max-w-[280px] font-bold overflow-hidden break-words">
                   <h3 className="font-bold text-base mb-2 line-clamp-2 text-white">
                     {post.title}
                   </h3>
@@ -287,7 +301,8 @@ export function PostMap({
                   {/* Location */}
                   <p className="text-xs text-gray-300 mb-2 flex items-center gap-1 font-bold">
                     <MapPin className="h-3 w-3" />
-                    {post.approximateLocation || `${post.coordinates.lat.toFixed(4)}, ${post.coordinates.lng.toFixed(4)}`}
+                    {post.approximateLocation ||
+                      `${post.coordinates.lat.toFixed(4)}, ${post.coordinates.lng.toFixed(4)}`}
                   </p>
 
                   {/* Stats */}
@@ -303,53 +318,59 @@ export function PostMap({
                   </div>
 
                   {/* Action buttons */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <a 
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "8px",
+                    }}
+                  >
+                    <a
                       href={`/posts/${post._id}`}
                       className="popup-btn"
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        backgroundColor: '#fafafa',
-                        color: '#0a0a0a',
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        backgroundColor: "#fafafa",
+                        color: "#0a0a0a",
                         fontFamily: "'Geist Mono', monospace",
-                        fontSize: '12px',
+                        fontSize: "12px",
                         fontWeight: 600,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textDecoration: 'none',
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "none",
+                        cursor: "pointer",
+                        textDecoration: "none",
                       }}
                     >
-                      <ExternalLink style={{ width: '14px', height: '14px' }} />
+                      <ExternalLink style={{ width: "14px", height: "14px" }} />
                       Details
                     </a>
-                    <button 
+                    <button
                       className="popup-btn"
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        backgroundColor: '#fafafa',
-                        color: '#0a0a0a',
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        backgroundColor: "#fafafa",
+                        color: "#0a0a0a",
                         fontFamily: "'Geist Mono', monospace",
-                        fontSize: '12px',
+                        fontSize: "12px",
                         fontWeight: 600,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        cursor: 'pointer',
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                       onClick={() => {
                         const url = `https://www.google.com/maps/dir/?api=1&destination=${post.coordinates.lat},${post.coordinates.lng}`;
-                        window.open(url, '_blank');
+                        window.open(url, "_blank");
                       }}
                     >
-                      <Route style={{ width: '14px', height: '14px' }} />
+                      <Route style={{ width: "14px", height: "14px" }} />
                       Directions
                     </button>
                   </div>

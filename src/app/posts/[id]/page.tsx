@@ -66,6 +66,7 @@ export default function PostDetailPage() {
   const [commentText, setCommentText] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [hasPreviouslyUnlocked, setHasPreviouslyUnlocked] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const {
     latitude,
@@ -395,8 +396,9 @@ export default function PostDetailPage() {
           {/* Unlocked Content */}
           {isUnlocked && (
             <div className="space-y-6">
-              {/* Enter AR - only when post has image or text */}
+              {/* Enter AR - only when post has image, model, or text */}
               {(post.hiddenMedia?.type === "image" && post.hiddenMedia?.url) ||
+              (post.hiddenMedia?.type === "model" && post.hiddenMedia?.url) ||
               post.hiddenText ? (
                 <div className="space-y-2">
                   <button
@@ -410,6 +412,9 @@ export default function PostDetailPage() {
                           lat: post.coordinates.lat,
                           lng: post.coordinates.lng,
                         },
+                        post.hiddenMedia?.type === "model"
+                          ? `/api/posts/${postId}/media`
+                          : undefined,
                       )
                     }
                     className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
@@ -443,11 +448,26 @@ export default function PostDetailPage() {
 
               {/* Description */}
               {post.hiddenText && (
-                <div>
+                <div className="max-w-full overflow-hidden">
                   <h3 className="font-medium mb-2">Description</h3>
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {post.hiddenText}
+                  <p className="text-muted-foreground whitespace-pre-wrap break-words">
+                    {isDescriptionExpanded || post.hiddenText.length <= 200
+                      ? post.hiddenText
+                      : `${post.hiddenText.slice(0, 200)}...`}
                   </p>
+
+                  {post.hiddenText.length > 200 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setIsDescriptionExpanded(!isDescriptionExpanded)
+                      }
+                      className="mt-2"
+                    >
+                      {isDescriptionExpanded ? "View less" : "View more"}
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -461,6 +481,14 @@ export default function PostDetailPage() {
                       alt={post.title}
                       className="w-full rounded-lg"
                     />
+                  )}
+                  {post.hiddenMedia.type === "model" && (
+                    <div className="bg-muted rounded-lg p-4 text-center">
+                      <div className="text-4xl mb-2">🎨</div>
+                      <p className="text-sm text-muted-foreground">
+                        3D Model attached - view in AR experience
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

@@ -2,13 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ImageIcon, Upload, X } from "lucide-react";
+import { ImageIcon, Upload, X, Box } from "lucide-react";
 import { PostData } from "./types";
 
 interface StepMediaProps {
   data: PostData;
   setData: React.Dispatch<React.SetStateAction<PostData>>;
 }
+
+// Helper to check if file is a 3D model
+const isModelFile = (file: File): boolean => {
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  return ["glb", "gltf", "obj"].includes(extension || "");
+};
 
 export function StepMedia({ data, setData }: StepMediaProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +29,7 @@ export function StepMedia({ data, setData }: StepMediaProps) {
           className="text-sm font-medium"
           style={{ color: "rgba(255,255,255,0.9)" }}
         >
-          Upload Image or Video
+          Upload Image, Video or 3D Model
           <span className="ml-1 font-normal" style={{ color: "rgba(255,255,255,0.4)" }}>(optional)</span>
         </Label>
         <div
@@ -43,7 +49,7 @@ export function StepMedia({ data, setData }: StepMediaProps) {
         >
           <input
             type="file"
-            accept="image/*,video/*"
+            accept="image/*,video/*,.glb,.gltf,.obj"
             onChange={handleFileChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             id="media-upload"
@@ -69,7 +75,7 @@ export function StepMedia({ data, setData }: StepMediaProps) {
                 className="mt-1 text-xs"
                 style={{ color: "rgba(255,255,255,0.4)" }}
               >
-                PNG, JPG, GIF, MP4 up to 50MB
+                PNG, JPG, GIF, MP4, GLB, GLTF up to 50MB
               </p>
             </div>
           </div>
@@ -88,11 +94,19 @@ export function StepMedia({ data, setData }: StepMediaProps) {
             <div 
               className="flex h-10 w-10 items-center justify-center rounded-lg"
               style={{
-                backgroundColor: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.1)"
+                backgroundColor: isModelFile(data.media) 
+                  ? "rgba(147, 51, 234, 0.2)" 
+                  : "rgba(255,255,255,0.1)",
+                border: isModelFile(data.media)
+                  ? "1px solid rgba(147, 51, 234, 0.3)"
+                  : "1px solid rgba(255,255,255,0.1)"
               }}
             >
-              <ImageIcon className="h-4 w-4" style={{ color: "rgba(255,255,255,0.6)" }} />
+              {isModelFile(data.media) ? (
+                <Box className="h-4 w-4" style={{ color: "rgba(167, 139, 250, 0.9)" }} />
+              ) : (
+                <ImageIcon className="h-4 w-4" style={{ color: "rgba(255,255,255,0.6)" }} />
+              )}
             </div>
             <div>
               <p 
@@ -106,6 +120,7 @@ export function StepMedia({ data, setData }: StepMediaProps) {
                 style={{ color: "rgba(255,255,255,0.4)" }}
               >
                 {(data.media.size / 1024 / 1024).toFixed(2)} MB
+                {isModelFile(data.media) && " • 3D Model"}
               </p>
             </div>
           </div>

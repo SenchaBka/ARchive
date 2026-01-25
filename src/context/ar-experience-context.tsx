@@ -17,6 +17,7 @@ export type ARExperienceState = {
   open: boolean;
   imageUrl: string;
   text: string;
+  modelUrl: string;
   coordinates: ARCoordinates | null;
 };
 
@@ -26,6 +27,7 @@ type ARExperienceContextValue = {
     imageUrl: string,
     text: string,
     coordinates: ARCoordinates,
+    modelUrl?: string,
   ) => void;
   closeARExperience: () => void;
 };
@@ -36,6 +38,7 @@ const initialState: ARExperienceState = {
   open: false,
   imageUrl: "",
   text: "",
+  modelUrl: "",
   coordinates: null,
 };
 
@@ -47,12 +50,14 @@ function buildIframeSrc(
   imageUrl: string,
   text: string,
   coordinates: ARCoordinates,
+  modelUrl?: string,
 ): string {
   const lat = coordinates.lat;
   const lon = coordinates.lon ?? coordinates.lng ?? 0;
   const params = new URLSearchParams();
   if (imageUrl) params.set("image_url", imageUrl);
   if (text) params.set("text", text);
+  if (modelUrl) params.set("model_url", modelUrl);
   params.set("lat", String(lat));
   params.set("lon", String(lon));
   return `/ar-experience.html?${params.toString()}`;
@@ -62,11 +67,12 @@ export function ARExperienceProvider({ children }: PropsWithChildren) {
   const [state, setState] = useState<ARExperienceState>(initialState);
 
   const openARExperience = useCallback(
-    (imageUrl: string, text: string, coordinates: ARCoordinates) => {
+    (imageUrl: string, text: string, coordinates: ARCoordinates, modelUrl?: string) => {
       setState({
         open: true,
         imageUrl,
         text,
+        modelUrl: modelUrl || "",
         coordinates,
       });
     },
@@ -83,10 +89,11 @@ export function ARExperienceProvider({ children }: PropsWithChildren) {
         imageUrl: string;
         text: string;
         coordinates: ARCoordinates;
+        modelUrl?: string;
       }>,
     ) => {
-      const { imageUrl, text, coordinates } = e.detail;
-      openARExperience(imageUrl, text, coordinates);
+      const { imageUrl, text, coordinates, modelUrl } = e.detail;
+      openARExperience(imageUrl, text, coordinates, modelUrl);
     };
     window.addEventListener(AR_OPEN_EVENT, handler as EventListener);
     return () =>
@@ -115,11 +122,11 @@ function ARExperienceOverlay() {
   if (!ctx) return null;
 
   const { state, closeARExperience } = ctx;
-  const { open, imageUrl, text, coordinates } = state;
+  const { open, imageUrl, text, modelUrl, coordinates } = state;
 
   if (!open || !coordinates) return null;
 
-  const src = buildIframeSrc(imageUrl, text, coordinates);
+  const src = buildIframeSrc(imageUrl, text, coordinates, modelUrl);
 
   return (
     <div
@@ -163,18 +170,20 @@ export function useARExperience() {
  * openARExperience(
  *   "https://example.com/image.jpg",
  *   "Story text here",
- *   { lat: 51.5, lon: -0.1 }
+ *   { lat: 51.5, lon: -0.1 },
+ *   "https://example.com/model.glb" // optional GLTF/GLB model
  * );
  */
 export function openARExperience(
   imageUrl: string,
   text: string,
   coordinates: ARCoordinates,
+  modelUrl?: string,
 ): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(
     new CustomEvent(AR_OPEN_EVENT, {
-      detail: { imageUrl, text, coordinates },
+      detail: { imageUrl, text, coordinates, modelUrl },
     }),
   );
 }
@@ -183,6 +192,7 @@ export type ARExperienceTriggerProps = {
   imageUrl: string;
   text: string;
   coordinates: ARCoordinates;
+  modelUrl?: string;
   children?: ReactNode;
   className?: string;
 };
@@ -195,13 +205,14 @@ export function ARExperienceTrigger({
   imageUrl,
   text,
   coordinates,
+  modelUrl,
   children,
   className,
 }: ARExperienceTriggerProps) {
   return (
     <button
       type="button"
-      onClick={() => openARExperience(imageUrl, text, coordinates)}
+      onClick={() => openARExperience(imageUrl, text, coordinates, modelUrl)}
       className={className}
     >
       {children ?? "Enter AR"}

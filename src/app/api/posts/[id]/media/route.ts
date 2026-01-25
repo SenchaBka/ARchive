@@ -1,5 +1,5 @@
 // GET /api/posts/[id]/media
-// Proxy post image for AR experience. Requires auth + unlock.
+// Proxy post media (images and 3D models) for AR experience. Requires auth + unlock.
 // Avoids 401/CORS when iframe fetches same-origin with credentials.
 
 import { NextRequest, NextResponse } from "next/server";
@@ -51,8 +51,9 @@ export async function GET(
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    if (!post.hiddenMedia?.url || post.hiddenMedia?.type !== "image") {
-      return NextResponse.json({ error: "No image media" }, { status: 404 });
+    const mediaType = post.hiddenMedia?.type;
+    if (!post.hiddenMedia?.url || (mediaType !== "image" && mediaType !== "model")) {
+      return NextResponse.json({ error: "No supported media" }, { status: 404 });
     }
 
     const mediaUrl = post.hiddenMedia.url;
@@ -86,7 +87,20 @@ export async function GET(
     }
 
     const blob = await res.blob();
-    const contentType = res.headers.get("content-type") || "image/jpeg";
+    
+    // Determine content type - use response header or derive from media type/URL
+    let contentType = res.headers.get("content-type");
+    if (!contentType || contentType === "application/octet-stream") {
+      // Fallback based on file extension or media type
+      const url = post.hiddenMedia.url.toLowerCase();
+      if (mediaType === "model" || url.endsWith(".glb")) {
+        contentType = "model/gltf-binary";
+      } else if (url.endsWith(".gltf")) {
+        contentType = "model/gltf+json";
+      } else {
+        contentType = "image/jpeg";
+      }
+    }
 
     return new NextResponse(blob, {
       status: 200,
