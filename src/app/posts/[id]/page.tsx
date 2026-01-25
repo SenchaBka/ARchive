@@ -274,38 +274,41 @@ export default function PostDetailPage() {
               />
               <span className="font-medium">{post.likes} {post.likes === 1 ? "like" : "likes"}</span>
             </Button>
-            <span className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-blue-500" />
+            <span className={`flex items-center gap-2 ${!isUnlocked ? "opacity-50" : ""}`}>
+              <MessageCircle className={`h-5 w-5 ${isUnlocked ? "text-blue-500" : "text-muted-foreground"}`} />
               <span className="font-medium">{post.comments.length} comments</span>
             </span>
           </div>
 
           {/* Location Status */}
-          <div className={`rounded-lg p-3 sm:p-4 ${isUnlocked ? "bg-green-50 border border-green-200" : "bg-orange-50 border border-orange-200"}`}>
+          <div className="rounded-lg p-3 sm:p-4 bg-zinc-900 border border-zinc-800">
             <div className="flex items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 {isUnlocked ? (
-                  <Unlock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 shrink-0 mt-0.5 sm:mt-0" />
+                  <Unlock className="h-5 w-5 sm:h-6 sm:w-6 text-green-500 shrink-0 mt-0.5 sm:mt-0" />
                 ) : (
-                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 shrink-0 mt-0.5 sm:mt-0" />
+                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400 shrink-0 mt-0.5 sm:mt-0" />
                 )}
                 <div className="min-w-0">
-                  <p className={`font-medium text-sm sm:text-base ${isUnlocked ? "text-green-800" : "text-orange-800"}`}>
-                    {isUnlocked ? "Content Unlocked!" : "Content Locked"}
+                  <p className={`font-medium text-sm sm:text-base ${isUnlocked ? "text-green-500" : "text-zinc-300"}`}>
+                    {isUnlocked ? "Story Unlocked!" : "Story Locked"}
                   </p>
-                  <p className={`text-xs sm:text-sm ${isUnlocked ? "text-green-600" : "text-orange-600"}`}>
+                  <p className="text-xs sm:text-sm text-zinc-500">
                     {locationLoading ? (
                       "Getting your location..."
                     ) : locationError ? (
                       locationError
                     ) : distanceToPost !== null ? (
-                      isUnlocked
-                        ? `${distanceToPost}m away (within ${post.radius}m)`
-                        : `${distanceToPost}m away (need ≤${post.radius}m)`
+                      `${distanceToPost}m away`
                     ) : (
                       "Location unavailable"
                     )}
                   </p>
+                  {!isUnlocked && (
+                    <p className="text-xs text-zinc-600 mt-1">
+                      🎯 Unlock within {post.radius}m
+                    </p>
+                  )}
                 </div>
               </div>
               <Button
@@ -313,7 +316,7 @@ export default function PostDetailPage() {
                 size="icon"
                 onClick={refreshLocation}
                 disabled={locationLoading}
-                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-black text-black hover:bg-zinc-900 border-zinc-700 text-white"
+                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-white"
               >
                 <RefreshCw className={`h-4 w-4 ${locationLoading ? "animate-spin" : ""}`} />
               </Button>
@@ -328,18 +331,12 @@ export default function PostDetailPage() {
                 <div className="absolute inset-0 backdrop-blur-md bg-background/80 flex flex-col items-center justify-center z-10">
                   <Lock className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground text-center px-4">
-                    Get within {post.radius}m of this location to unlock the description and audio
+                    Get within {post.radius}m of this location to unlock the story
                   </p>
                 </div>
                 <p className="text-muted-foreground select-none">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                 </p>
-              </div>
-
-              {/* Navigation hint */}
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Navigation className="h-4 w-4" />
-                <span>Travel to the location to unlock this content</span>
               </div>
             </div>
           )}
