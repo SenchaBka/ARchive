@@ -1,6 +1,7 @@
 // GET /api/posts/[id]
 
 import { NextRequest, NextResponse } from "next/server";
+import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Post } from "@/models/Post";
 
@@ -10,6 +11,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+
+    // Get current user (optional - for checking if they liked the post)
+    const session = await auth0.getSession();
+    const userId = session?.user?.sub;
 
     await connectDB();
 
@@ -22,7 +27,14 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ post });
+    // Check if current user has liked this post
+    const likedByArray = post.likedBy || [];
+    const hasLiked = userId ? likedByArray.some((likedUserId: string) => likedUserId === userId) : false;
+
+    return NextResponse.json({ 
+      post,
+      hasLiked,
+    });
   } catch (error) {
     console.error("Error fetching post:", error);
     return NextResponse.json(
