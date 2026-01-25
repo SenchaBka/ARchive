@@ -13,7 +13,7 @@ export function Navbar() {
   return (
     <>
       <nav 
-        className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
+        className="fixed top-0 left-0 right-0 z-[100] px-4 py-4"
         style={{ 
           backgroundColor: "rgba(0,0,0,0.8)",
           backdropFilter: "blur(12px)",
@@ -49,7 +49,7 @@ export function Navbar() {
       {/* Mobile Menu Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-[100]"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           onClick={() => setIsOpen(false)}
         />
@@ -57,7 +57,7 @@ export function Navbar() {
 
       {/* Mobile Menu Panel */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-50 flex flex-col w-full sm:w-80 transition-transform duration-300 ease-out"
+        className="fixed top-0 right-0 bottom-0 z-[101] flex flex-col w-full sm:w-80 transition-transform duration-300 ease-out"
         style={{
           backgroundColor: "rgba(0,0,0,0.98)",
           backdropFilter: "blur(20px)",
