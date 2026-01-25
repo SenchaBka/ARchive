@@ -159,14 +159,28 @@ export default function CreatePostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <div className="mx-auto max-w-2xl px-4 py-12 md:py-20">
+    <div className="min-h-screen bg-black">
+      {/* Subtle gradient background */}
+      <div 
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 50%)"
+        }}
+      />
+      
+      <div className="relative mx-auto max-w-2xl px-4 pt-24 pb-12 md:pb-20">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 
+            className="text-2xl font-semibold tracking-tight"
+            style={{ color: "#fafafa" }}
+          >
             Create a Post
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p 
+            className="mt-2 text-sm"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
             Share your location-based content
           </p>
         </div>
@@ -185,19 +199,19 @@ export default function CreatePostPage() {
                   <button
                     onClick={() => s.id < step && setStep(s.id)}
                     disabled={s.id > step}
-                    className={`
-                      relative flex h-10 w-10 items-center justify-center rounded-full
-                      transition-all duration-200 ease-out
-                      ${
-                        isCompleted
-                          ? "bg-foreground text-background"
-                          : isCurrent
-                          ? "bg-foreground text-background ring-4 ring-foreground/10"
-                          : "bg-white text-muted-foreground border border-border"
-                      }
-                      ${s.id < step ? "cursor-pointer hover:ring-4 hover:ring-foreground/5" : ""}
-                      ${s.id > step ? "cursor-not-allowed" : ""}
-                    `}
+                    className="relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ease-out"
+                    style={{
+                      backgroundColor: isCompleted || isCurrent 
+                        ? "#fafafa" 
+                        : "rgba(255,255,255,0.1)",
+                      color: isCompleted || isCurrent 
+                        ? "#000000" 
+                        : "rgba(255,255,255,0.5)",
+                      boxShadow: isCurrent 
+                        ? "0 0 0 4px rgba(255,255,255,0.1)" 
+                        : "none",
+                      cursor: s.id < step ? "pointer" : s.id > step ? "not-allowed" : "default"
+                    }}
                   >
                     {isCompleted ? (
                       <Check className="h-4 w-4" strokeWidth={2.5} />
@@ -210,9 +224,12 @@ export default function CreatePostPage() {
                   {index < STEPS.length - 1 && (
                     <div className="flex-1 mx-3">
                       <div
-                        className={`h-[2px] rounded-full transition-colors duration-300 ${
-                          step > s.id ? "bg-foreground" : "bg-border"
-                        }`}
+                        className="h-[2px] rounded-full transition-colors duration-300"
+                        style={{
+                          backgroundColor: step > s.id 
+                            ? "#fafafa" 
+                            : "rgba(255,255,255,0.15)"
+                        }}
                       />
                     </div>
                   )}
@@ -226,15 +243,20 @@ export default function CreatePostPage() {
             {STEPS.map((s) => (
               <div
                 key={s.id}
-                className={`text-center ${
-                  s.id === 1 ? "text-left" : s.id === STEPS.length ? "text-right" : ""
-                }`}
-                style={{ width: s.id === 1 || s.id === STEPS.length ? "40px" : "auto", flex: s.id === 1 || s.id === STEPS.length ? "none" : "1" }}
+                className="text-center"
+                style={{ 
+                  textAlign: s.id === 1 ? "left" : s.id === STEPS.length ? "right" : "center",
+                  width: s.id === 1 || s.id === STEPS.length ? "40px" : "auto", 
+                  flex: s.id === 1 || s.id === STEPS.length ? "none" : "1" 
+                }}
               >
                 <p
-                  className={`text-xs font-medium transition-colors ${
-                    step >= s.id ? "text-foreground" : "text-muted-foreground"
-                  }`}
+                  className="text-xs font-medium transition-colors"
+                  style={{ 
+                    color: step >= s.id 
+                      ? "rgba(255,255,255,0.9)" 
+                      : "rgba(255,255,255,0.4)" 
+                  }}
                 >
                   {s.title}
                 </p>
@@ -244,14 +266,27 @@ export default function CreatePostPage() {
         </div>
 
         {/* Content Card */}
-        <Card className="border border-border bg-white shadow-sm">
-          <CardContent className="p-8">
+        <div 
+          className="rounded-xl"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(20px)"
+          }}
+        >
+          <div className="p-8">
             {/* Step Header */}
             <div className="mb-8">
-              <h2 className="text-lg font-medium text-foreground">
+              <h2 
+                className="text-lg font-medium"
+                style={{ color: "#fafafa" }}
+              >
                 {STEPS[step - 1].title}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p 
+                className="mt-1 text-sm"
+                style={{ color: "rgba(255,255,255,0.5)" }}
+              >
                 {STEPS[step - 1].description}
               </p>
             </div>
@@ -264,8 +299,8 @@ export default function CreatePostPage() {
               {step === 4 && <StepAudio data={data} setData={setData} />}
               {step === 5 && <StepPreview data={data} />}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Navigation */}
         <div className="mt-6 flex items-center justify-between">
@@ -273,26 +308,37 @@ export default function CreatePostPage() {
             variant="ghost"
             onClick={prevStep}
             disabled={step === 1 || isSubmitting}
-            className="gap-2 text-muted-foreground hover:text-foreground"
+            className="gap-2 hover:bg-white/10"
+            style={{ color: "rgba(255,255,255,0.6)" }}
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
 
           {step < STEPS.length ? (
-            <Button
+            <button
               onClick={nextStep}
               disabled={!canProceed()}
-              className="gap-2 bg-foreground text-background hover:bg-foreground/90"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200"
+              style={{
+                backgroundColor: canProceed() ? "#fafafa" : "rgba(255,255,255,0.1)",
+                color: canProceed() ? "#000000" : "rgba(255,255,255,0.3)",
+                cursor: canProceed() ? "pointer" : "not-allowed"
+              }}
             >
               Continue
               <ArrowRight className="h-4 w-4" />
-            </Button>
+            </button>
           ) : (
-            <Button
+            <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="gap-2 bg-foreground text-background hover:bg-foreground/90"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200"
+              style={{
+                backgroundColor: isSubmitting ? "rgba(255,255,255,0.1)" : "#fafafa",
+                color: isSubmitting ? "rgba(255,255,255,0.5)" : "#000000",
+                cursor: isSubmitting ? "not-allowed" : "pointer"
+              }}
             >
               {isSubmitting ? (
                 <>
@@ -305,19 +351,28 @@ export default function CreatePostPage() {
                   <Check className="h-4 w-4" />
                 </>
               )}
-            </Button>
+            </button>
           )}
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
+          <div 
+            className="mt-4 p-4 rounded-lg"
+            style={{
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.3)"
+            }}
+          >
+            <p className="text-sm" style={{ color: "#f87171" }}>{error}</p>
           </div>
         )}
 
         {/* Step Counter */}
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p 
+          className="mt-6 text-center text-xs"
+          style={{ color: "rgba(255,255,255,0.3)" }}
+        >
           Step {step} of {STEPS.length}
         </p>
       </div>

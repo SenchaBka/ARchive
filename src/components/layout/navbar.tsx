@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, LogIn, UserPlus, X } from "lucide-react";
+import { Menu, LogIn, UserPlus, X, User, MapPin, LogOut } from "lucide-react";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { Logo } from "./logo";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isLoading } = useUser();
 
   return (
     <>
@@ -79,7 +81,7 @@ export function Navbar() {
         {/* Menu Items */}
         <div className="flex flex-col gap-2 p-4">
           <Link
-            href="/auth/login"
+            href="/posts"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
             style={{ color: "rgba(255,255,255,0.9)" }}
@@ -88,35 +90,105 @@ export function Navbar() {
               className="flex items-center justify-center w-10 h-10 rounded-lg"
               style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
             >
-              <LogIn className="w-5 h-5" />
+              <MapPin className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-medium">Log in</span>
+              <span className="font-medium">Posts</span>
               <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Access your account
+                Explore nearby stories
               </span>
             </div>
           </Link>
 
-          <Link
-            href="/auth/signup"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
-            style={{ color: "rgba(255,255,255,0.9)" }}
-          >
-            <div 
-              className="flex items-center justify-center w-10 h-10 rounded-lg"
-              style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+          {!isLoading && user && (
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
+              style={{ color: "rgba(255,255,255,0.9)" }}
             >
-              <UserPlus className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-medium">Sign up</span>
-              <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Create a new account
-              </span>
-            </div>
-          </Link>
+              <div 
+                className="flex items-center justify-center w-10 h-10 rounded-lg"
+                style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                <User className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium">Profile</span>
+                <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  View your profile
+                </span>
+              </div>
+            </Link>
+          )}
+
+          <div className="my-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }} />
+
+          {!isLoading && !user && (
+            <>
+              <Link
+                href="/auth/login"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
+                style={{ color: "rgba(255,255,255,0.9)" }}
+              >
+                <div 
+                  className="flex items-center justify-center w-10 h-10 rounded-lg"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                >
+                  <LogIn className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium">Log in</span>
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    Access your account
+                  </span>
+                </div>
+              </Link>
+
+              <Link
+                href="/auth/signup"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
+                style={{ color: "rgba(255,255,255,0.9)" }}
+              >
+                <div 
+                  className="flex items-center justify-center w-10 h-10 rounded-lg"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                >
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium">Sign up</span>
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    Create a new account
+                  </span>
+                </div>
+              </Link>
+            </>
+          )}
+
+          {!isLoading && user && (
+            <Link
+              href="/auth/logout"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
+              style={{ color: "rgba(255,255,255,0.9)" }}
+            >
+              <div 
+                className="flex items-center justify-center w-10 h-10 rounded-lg"
+                style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium">Sign out</span>
+                <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  Log out of your account
+                </span>
+              </div>
+            </Link>
+          )}
         </div>
 
         {/* Footer */}

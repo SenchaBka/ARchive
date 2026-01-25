@@ -5,7 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 function Particles({ count = 800 }) {
-  const mesh = useRef<THREE.Points>(null);
+  const mesh = useRef<any>(null);
 
   const particles = useMemo(() => {
     const positions = new Float32Array(count * 3);
@@ -24,7 +24,22 @@ function Particles({ count = 800 }) {
       sizes[i] = Math.random() * 2 + 0.5;
     }
 
-    return { positions, sizes };
+    // Create circular texture for particles
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext("2d");
+    if (context) {
+      const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, "rgba(255,255,255,1)");
+      gradient.addColorStop(0.5, "rgba(255,255,255,0.5)");
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 64, 64);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+
+    return { positions, sizes, texture };
   }, [count]);
 
   useFrame((state) => {
@@ -57,31 +72,10 @@ function Particles({ count = 800 }) {
         opacity={0.4}
         sizeAttenuation
         depthWrite={false}
+        map={particles.texture}
+        alphaTest={0.001}
       />
     </points>
-  );
-}
-
-function FloatingOrb() {
-  const mesh = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (mesh.current) {
-      mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.5;
-      mesh.current.rotation.y = state.clock.elapsedTime * 0.1;
-    }
-  });
-
-  return (
-    <mesh ref={mesh} position={[0, 0, -5]}>
-      <icosahedronGeometry args={[2.5, 1]} />
-      <meshBasicMaterial
-        color="#1a1a1a"
-        wireframe
-        transparent
-        opacity={0.3}
-      />
-    </mesh>
   );
 }
 
@@ -104,8 +98,7 @@ export function ThreeBackground() {
         style={{ background: "transparent" }}
       >
         <ambientLight intensity={0.1} />
-        <Particles count={600} />
-        <FloatingOrb />
+        <Particles count={1000} />
         <GridPlane />
       </Canvas>
     </div>

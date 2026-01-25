@@ -1,6 +1,5 @@
 "use client";
 
-import { Navbar } from "@/components/layout/navbar";
 import { ThreeBackground } from "@/components/home/three-background";
 import { MapPin, Headphones, Globe, Sparkles, Lock } from "lucide-react";
 
@@ -12,9 +11,6 @@ export default function Home() {
     >
       {/* Three.js Background */}
       <ThreeBackground />
-
-      {/* Navbar */}
-      <Navbar />
 
       {/* Main Content */}
       <main className="relative z-10">

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, X, Search, Loader2 } from "lucide-react";
 import { PostData } from "./types";
@@ -109,34 +108,64 @@ export function StepLocation({ data, setData }: StepLocationProps) {
     <div className="space-y-6">
       {/* Option 1: Current Location */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Use your current location</Label>
-        <Button
-          variant="outline"
+        <Label 
+          className="text-sm font-medium"
+          style={{ color: "rgba(255,255,255,0.9)" }}
+        >
+          Use your current location
+        </Label>
+        <button
           onClick={getCurrentLocation}
           disabled={isLocating}
-          className="w-full h-11 gap-2 border-border hover:bg-[#fafafa]"
+          className="w-full h-11 flex items-center justify-center gap-2 rounded-lg font-medium text-sm transition-all duration-200"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "rgba(255,255,255,0.9)",
+            cursor: isLocating ? "not-allowed" : "pointer"
+          }}
+          onMouseEnter={(e) => {
+            if (!isLocating) {
+              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
+          }}
         >
           <MapPin className="h-4 w-4" />
           {isLocating ? "Getting location..." : "Use Current Location"}
-        </Button>
+        </button>
       </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
+          <span 
+            className="w-full"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+          />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">or</span>
+          <span 
+            className="px-2"
+            style={{ backgroundColor: "transparent", color: "rgba(255,255,255,0.4)" }}
+          >
+            or
+          </span>
         </div>
       </div>
 
       {/* Option 2: Search by Address */}
       <div className="space-y-2">
-        <Label htmlFor="address" className="text-sm font-medium">
+        <Label 
+          htmlFor="address" 
+          className="text-sm font-medium"
+          style={{ color: "rgba(255,255,255,0.9)" }}
+        >
           Search by address
         </Label>
         <div className="flex gap-2">
-          <Input
+          <input
             id="address"
             placeholder="123 Main St, City, Country"
             value={data.address}
@@ -145,40 +174,71 @@ export function StepLocation({ data, setData }: StepLocationProps) {
               setGeocodeError(null);
             }}
             onKeyDown={(e) => e.key === "Enter" && handleGeocodeAddress()}
-            className="h-11 bg-[#fafafa] border-border focus:bg-white transition-colors"
+            className="flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fafafa"
+            }}
+            onFocus={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.08)";
+              e.target.style.borderColor = "rgba(255,255,255,0.2)";
+            }}
+            onBlur={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+              e.target.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
           />
-          <Button
-            variant="outline"
+          <button
             onClick={handleGeocodeAddress}
             disabled={isGeocoding || !data.address}
-            className="h-11 px-4"
+            className="h-11 px-4 rounded-lg transition-all duration-200"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: isGeocoding || !data.address ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.9)",
+              cursor: isGeocoding || !data.address ? "not-allowed" : "pointer"
+            }}
           >
             {isGeocoding ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Search className="h-4 w-4" />
             )}
-          </Button>
+          </button>
         </div>
         {geocodeError && (
-          <p className="text-sm text-red-500">{geocodeError}</p>
+          <p className="text-sm" style={{ color: "#f87171" }}>{geocodeError}</p>
         )}
       </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
+          <span 
+            className="w-full"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+          />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">or</span>
+          <span 
+            className="px-2"
+            style={{ backgroundColor: "transparent", color: "rgba(255,255,255,0.4)" }}
+          >
+            or
+          </span>
         </div>
       </div>
 
       {/* Option 3: Manual Coordinates */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Enter coordinates manually</Label>
+        <Label 
+          className="text-sm font-medium"
+          style={{ color: "rgba(255,255,255,0.9)" }}
+        >
+          Enter coordinates manually
+        </Label>
         <div className="flex gap-2">
-          <Input
+          <input
             placeholder="Latitude"
             value={manualLat}
             onChange={(e) => setManualLat(e.target.value)}
@@ -186,9 +246,22 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             step="any"
             min="-90"
             max="90"
-            className="h-11 bg-[#fafafa] border-border focus:bg-white transition-colors"
+            className="flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fafafa"
+            }}
+            onFocus={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.08)";
+              e.target.style.borderColor = "rgba(255,255,255,0.2)";
+            }}
+            onBlur={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+              e.target.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
           />
-          <Input
+          <input
             placeholder="Longitude"
             value={manualLng}
             onChange={(e) => setManualLng(e.target.value)}
@@ -196,42 +269,81 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             step="any"
             min="-180"
             max="180"
-            className="h-11 bg-[#fafafa] border-border focus:bg-white transition-colors"
+            className="flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fafafa"
+            }}
+            onFocus={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.08)";
+              e.target.style.borderColor = "rgba(255,255,255,0.2)";
+            }}
+            onBlur={(e) => {
+              e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+              e.target.style.borderColor = "rgba(255,255,255,0.1)";
+            }}
           />
-          <Button
-            variant="outline"
+          <button
             onClick={handleSetManualCoordinates}
             disabled={!manualLat || !manualLng}
-            className="h-11 px-4"
+            className="h-11 px-4 rounded-lg font-medium text-sm transition-all duration-200"
+            style={{
+              backgroundColor: !manualLat || !manualLng ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: !manualLat || !manualLng ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.9)",
+              cursor: !manualLat || !manualLng ? "not-allowed" : "pointer"
+            }}
           >
             Set
-          </Button>
+          </button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p 
+          className="text-xs"
+          style={{ color: "rgba(255,255,255,0.4)" }}
+        >
           Latitude: -90 to 90, Longitude: -180 to 180
         </p>
       </div>
 
       {/* Selected Location Display */}
       {data.latitude && data.longitude && (
-        <div className="rounded-lg bg-green-50 p-4 border border-green-200">
+        <div 
+          className="rounded-lg p-4"
+          style={{
+            backgroundColor: "rgba(34, 197, 94, 0.1)",
+            border: "1px solid rgba(34, 197, 94, 0.3)"
+          }}
+        >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-green-800 uppercase tracking-wide">
+              <p 
+                className="text-xs font-medium uppercase tracking-wide"
+                style={{ color: "#4ade80" }}
+              >
                 ✓ Location Set
               </p>
-              <p className="mt-1 font-mono text-sm text-green-700">
+              <p 
+                className="mt-1 font-mono text-sm"
+                style={{ color: "#86efac" }}
+              >
                 {data.latitude.toFixed(6)}, {data.longitude.toFixed(6)}
               </p>
               {data.address && (
-                <p className="mt-1 text-sm text-green-600 truncate max-w-xs">
+                <p 
+                  className="mt-1 text-sm truncate max-w-xs"
+                  style={{ color: "#4ade80" }}
+                >
                   {data.address}
                 </p>
               )}
             </div>
             <button
               onClick={clearLocation}
-              className="text-green-600 hover:text-green-800 transition-colors"
+              className="transition-colors"
+              style={{ color: "#4ade80" }}
+              onMouseEnter={(e) => e.currentTarget.style.color = "#86efac"}
+              onMouseLeave={(e) => e.currentTarget.style.color = "#4ade80"}
             >
               <X className="h-4 w-4" />
             </button>
@@ -240,12 +352,24 @@ export function StepLocation({ data, setData }: StepLocationProps) {
       )}
 
       {/* Unlock Radius */}
-      <div className="space-y-3 pt-4 border-t">
+      <div 
+        className="space-y-3 pt-4"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+      >
         <div className="flex items-center justify-between">
-          <Label htmlFor="radius" className="text-sm font-medium">
+          <Label 
+            htmlFor="radius" 
+            className="text-sm font-medium"
+            style={{ color: "rgba(255,255,255,0.9)" }}
+          >
             Unlock Radius
           </Label>
-          <span className="text-sm font-medium tabular-nums">{data.radius}m</span>
+          <span 
+            className="text-sm font-medium tabular-nums"
+            style={{ color: "#fafafa" }}
+          >
+            {data.radius}m
+          </span>
         </div>
         <div className="relative">
           <input
@@ -256,14 +380,17 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             step={10}
             value={data.radius}
             onChange={(e) => setData({ ...data, radius: Number(e.target.value) })}
-            className="slider-input w-full"
-          />
-          <div 
-            className="pointer-events-none absolute top-1/2 left-0 h-2 -translate-y-1/2 rounded-full bg-foreground"
-            style={{ width: `${((data.radius - 10) / (500 - 10)) * 100}%` }}
+            className="w-full h-2 rounded-full appearance-none cursor-pointer"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.1)",
+              accentColor: "#fafafa"
+            }}
           />
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <div 
+          className="flex justify-between text-xs"
+          style={{ color: "rgba(255,255,255,0.4)" }}
+        >
           <span>10m</span>
           <span>500m</span>
         </div>
