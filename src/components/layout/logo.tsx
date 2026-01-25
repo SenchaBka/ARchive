@@ -1,0 +1,290 @@
+import React, { useId } from "react";
+
+interface LogoProps {
+  className?: string;
+  height?: number;
+}
+
+export function Logo({ className = "", height = 32 }: LogoProps) {
+  const id = useId();
+  const aspectRatio = 463 / 115; // width / height from viewBox
+  const width = height * aspectRatio;
+  
+  const filter0 = `filter0_d_${id}`;
+  const filter1 = `filter1_d_${id}`;
+  const filter2 = `filter2_d_${id}`;
+  const filter3 = `filter3_d_${id}`;
+  const filter4 = `filter4_d_${id}`;
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 463 115"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ display: "block" }}
+    >
+      <g filter={`url(#${filter0})`}>
+        <circle cx="12" cy="62" r="12" fill="white" />
+      </g>
+      <g filter={`url(#${filter1})`}>
+        <circle cx="83" cy="34" r="10" fill="white" />
+      </g>
+      <g filter={`url(#${filter2})`}>
+        <circle cx="61" cy="12" r="12" fill="white" />
+      </g>
+      <line
+        x1="12.8787"
+        y1="61.8787"
+        x2="56.8787"
+        y2="17.8787"
+        stroke="white"
+        strokeWidth="6"
+      />
+      <g filter={`url(#${filter3})`}>
+        <circle cx="59" cy="58" r="10" fill="white" />
+      </g>
+      <g filter={`url(#${filter4})`}>
+        <circle cx="58" cy="92" r="12" fill="white" />
+      </g>
+      <line
+        x1="55.8787"
+        y1="61.7586"
+        x2="81.7586"
+        y2="35.8787"
+        stroke="white"
+        strokeWidth="6"
+      />
+      <line
+        x1="86.8787"
+        y1="35.1213"
+        x2="69.9081"
+        y2="18.1508"
+        stroke="white"
+        strokeWidth="6"
+      />
+      <line
+        x1="58.9599"
+        y1="94.7391"
+        x2="10.2727"
+        y2="60.4528"
+        stroke="white"
+        strokeWidth="6"
+      />
+      <path
+        d="M81.368 102L95.336 50.88H107.864L121.832 102H111.536L101.6 63.264L91.664 102H81.368ZM90.8 91.128L93.392 82.2H109.808L112.4 91.128H90.8ZM127.636 102V50.88H144.124C149.644 50.88 153.94 52.272 157.012 55.056C160.132 57.792 161.692 61.512 161.692 66.216C161.692 68.76 161.164 70.968 160.108 72.84C159.052 74.712 157.612 76.176 155.788 77.232C153.964 78.288 151.972 78.912 149.812 79.104L149.524 78.168C153.316 78.216 156.148 79.008 158.02 80.544C159.892 82.032 160.972 84.432 161.26 87.744L162.484 102H152.116L151.252 90.48C151.108 88.56 150.772 87.096 150.244 86.088C149.716 85.08 148.9 84.384 147.796 84C146.692 83.616 145.228 83.424 143.404 83.424H137.86V102H127.636ZM137.86 74.208H143.764C146.164 74.208 147.988 73.584 149.236 72.336C150.532 71.088 151.18 69.36 151.18 67.152C151.18 64.896 150.532 63.168 149.236 61.968C147.988 60.72 146.164 60.096 143.764 60.096H137.86V74.208ZM188.592 102.864C184.944 102.864 181.704 102.024 178.872 100.344C176.088 98.664 173.904 96.312 172.32 93.288C170.784 90.216 170.016 86.688 170.016 82.704C170.016 78.72 170.784 75.216 172.32 72.192C173.904 69.168 176.088 66.816 178.872 65.136C181.704 63.408 184.944 62.544 188.592 62.544C191.616 62.544 194.376 63.144 196.872 64.344C199.368 65.544 201.408 67.248 202.992 69.456C204.624 71.664 205.656 74.304 206.088 77.376L196.368 77.88C195.888 75.72 194.976 74.064 193.632 72.912C192.288 71.76 190.632 71.184 188.664 71.184C186.024 71.184 183.936 72.216 182.4 74.28C180.912 76.296 180.168 79.104 180.168 82.704C180.168 86.304 180.912 89.136 182.4 91.2C183.936 93.216 186.024 94.224 188.664 94.224C190.68 94.224 192.36 93.624 193.704 92.424C195.096 91.224 196.008 89.472 196.44 87.168L206.16 87.672C205.776 90.696 204.768 93.36 203.136 95.664C201.504 97.92 199.44 99.696 196.944 100.992C194.448 102.24 191.664 102.864 188.592 102.864ZM215.132 102V50.88H224.924V71.688L224.132 70.968C224.708 69 225.548 67.416 226.652 66.216C227.756 64.968 229.1 64.056 230.684 63.48C232.268 62.856 233.996 62.544 235.868 62.544C238.556 62.544 240.764 63.144 242.492 64.344C244.22 65.544 245.516 67.248 246.38 69.456C247.244 71.616 247.676 74.16 247.676 77.088V102H237.884V79.104C237.884 76.128 237.38 74.016 236.372 72.768C235.364 71.472 233.948 70.824 232.124 70.824C230.06 70.824 228.332 71.568 226.94 73.056C225.596 74.544 224.924 76.776 224.924 79.752V102H215.132ZM271.912 102V63.408H281.704V102H271.912ZM257.584 102V94.224H293.872V102H257.584ZM258.304 71.184V63.408H279.904V71.184H258.304ZM271.624 58.656V50.16H281.56V58.656H271.624ZM311.555 102L298.451 63.408H308.747L317.459 91.344L326.171 63.408H336.467L323.363 102H311.555ZM360.919 102.864C357.319 102.864 354.127 102.048 351.343 100.416C348.607 98.736 346.447 96.384 344.863 93.36C343.327 90.336 342.559 86.784 342.559 82.704C342.559 78.72 343.327 75.216 344.863 72.192C346.399 69.168 348.535 66.816 351.271 65.136C354.007 63.408 357.175 62.544 360.775 62.544C364.327 62.544 367.447 63.384 370.135 65.064C372.871 66.744 375.007 69.12 376.543 72.192C378.079 75.216 378.847 78.792 378.847 82.92V85.368H352.639C352.879 88.248 353.743 90.456 355.231 91.992C356.767 93.48 358.735 94.224 361.135 94.224C362.911 94.224 364.423 93.816 365.671 93C366.919 92.136 367.783 90.984 368.263 89.544L378.055 90.192C376.759 94.224 374.647 97.344 371.719 99.552C368.839 101.76 365.239 102.864 360.919 102.864ZM352.783 78.672H368.407C368.167 76.176 367.351 74.304 365.959 73.056C364.567 71.808 362.815 71.184 360.703 71.184C358.495 71.184 356.695 71.832 355.303 73.128C353.959 74.376 353.119 76.224 352.783 78.672Z"
+        fill="white"
+      />
+      <defs>
+        <filter
+          id={filter0}
+          x="0"
+          y="50"
+          width="24"
+          height="24"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feMorphology
+            radius="5"
+            operator="erode"
+            in="SourceAlpha"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feOffset />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2019_3"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id={filter1}
+          x="73"
+          y="24"
+          width="20"
+          height="20"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feMorphology
+            radius="5"
+            operator="erode"
+            in="SourceAlpha"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feOffset />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2019_3"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id={filter2}
+          x="49"
+          y="0"
+          width="24"
+          height="24"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feMorphology
+            radius="5"
+            operator="erode"
+            in="SourceAlpha"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feOffset />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2019_3"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id={filter3}
+          x="49"
+          y="48"
+          width="20"
+          height="20"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feMorphology
+            radius="5"
+            operator="erode"
+            in="SourceAlpha"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feOffset />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2019_3"
+            result="shape"
+          />
+        </filter>
+        <filter
+          id={filter4}
+          x="46"
+          y="80"
+          width="24"
+          height="24"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feMorphology
+            radius="5"
+            operator="erode"
+            in="SourceAlpha"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feOffset />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_2019_3"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_2019_3"
+            result="shape"
+          />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
