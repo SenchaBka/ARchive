@@ -14,7 +14,11 @@ export function Navbar() {
     <>
       <nav 
         className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
-        style={{ backgroundColor: "transparent" }}
+        style={{ 
+          backgroundColor: "rgba(0,0,0,0.8)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)"
+        }}
       >
         <div className="mx-auto flex items-center justify-between max-w-7xl">
           {/* Logo */}
@@ -80,25 +84,27 @@ export function Navbar() {
 
         {/* Menu Items */}
         <div className="flex flex-col gap-2 p-4">
-          <Link
-            href="/posts"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
-            style={{ color: "rgba(255,255,255,0.9)" }}
-          >
-            <div 
-              className="flex items-center justify-center w-10 h-10 rounded-lg"
-              style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+          {!isLoading && user && (
+            <Link
+              href="/posts"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
+              style={{ color: "rgba(255,255,255,0.9)" }}
             >
-              <MapPin className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-medium">Posts</span>
-              <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Explore nearby stories
-              </span>
-            </div>
-          </Link>
+              <div 
+                className="flex items-center justify-center w-10 h-10 rounded-lg"
+                style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              >
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium">Posts</span>
+                <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  Explore nearby stories
+                </span>
+              </div>
+            </Link>
+          )}
 
           {!isLoading && user && (
             <Link
