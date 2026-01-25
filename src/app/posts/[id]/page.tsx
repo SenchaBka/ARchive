@@ -318,6 +318,9 @@ export default function PostDetailPage() {
               <span className="font-medium">
                 {post.comments.length} comments
               </span>
+            <span className={`flex items-center gap-2 ${!isUnlocked ? "opacity-50" : ""}`}>
+              <MessageCircle className={`h-5 w-5 ${isUnlocked ? "text-blue-500" : "text-muted-foreground"}`} />
+              <span className="font-medium">{post.comments.length} comments</span>
             </span>
           </div>
 
@@ -328,9 +331,9 @@ export default function PostDetailPage() {
             <div className="flex items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 {isUnlocked ? (
-                  <Unlock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 shrink-0 mt-0.5 sm:mt-0" />
+                  <Unlock className="h-5 w-5 sm:h-6 sm:w-6 text-green-500 shrink-0 mt-0.5 sm:mt-0" />
                 ) : (
-                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 shrink-0 mt-0.5 sm:mt-0" />
+                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400 shrink-0 mt-0.5 sm:mt-0" />
                 )}
                 <div className="min-w-0">
                   <p
@@ -351,6 +354,11 @@ export default function PostDetailPage() {
                             : `${distanceToPost}m away (need ≤${post.radius}m)`
                           : "Location unavailable"}
                   </p>
+                  {!isUnlocked && (
+                    <p className="text-xs text-zinc-600 mt-1">
+                      🎯 Unlock within {post.radius}m
+                    </p>
+                  )}
                 </div>
               </div>
               <Button
@@ -358,7 +366,7 @@ export default function PostDetailPage() {
                 size="icon"
                 onClick={refreshLocation}
                 disabled={locationLoading}
-                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-black text-black hover:bg-zinc-900 border-zinc-700 text-white"
+                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-white"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${locationLoading ? "animate-spin" : ""}`}
@@ -383,12 +391,6 @@ export default function PostDetailPage() {
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
                   do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                 </p>
-              </div>
-
-              {/* Navigation hint */}
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Navigation className="h-4 w-4" />
-                <span>Travel to the location to unlock this content</span>
               </div>
             </div>
           )}

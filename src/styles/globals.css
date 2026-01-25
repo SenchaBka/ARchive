@@ -114,6 +114,23 @@
 }
 
 /* Leaflet Map Popup Styling */
+.leaflet-container {
+  z-index: 0;
+  isolation: isolate;
+}
+
+/* Ensure Leaflet popups stay below navbar */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: auto !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 50 !important;
+}
+
 .leaflet-popup-content-wrapper {
   background-color: #0a0a0a !important;
   color: #fafafa !important;
