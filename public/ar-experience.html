@@ -422,11 +422,11 @@
             yOffset += 10;
 
             ctx.fillStyle = "#000000";
-            ctx.font = '400px "Segoe UI", sans-serif';
+            ctx.font = '200px "Segoe UI", sans-serif';
             ctx.textAlign = "left";
 
-            const maxCharsPerLine = 5;
-            const lineHeight = 500;
+            const maxCharsPerLine = 10;
+            const lineHeight = 250;
             const textPadding = padding;
 
             let remainingText = this.text;
@@ -925,7 +925,7 @@
 
         // Position tube directly in front of user at fixed distance
         const tubeGroup = tube.getGroup();
-        tubeGroup.position.set(0, 0, -15); // 15 units in front of camera
+        tubeGroup.position.set(0, 0, -22.5); // 22.5 units in front of camera
 
         try {
           const imageBlob = await loadHardcodedImage();
@@ -998,7 +998,7 @@
           const time = Date.now() * 0.0001;
           camera.position.x = Math.sin(time) * 8;
           camera.position.z = Math.cos(time) * 8;
-          camera.lookAt(0, 0, -15);
+          camera.lookAt(0, 0, -22.5);
         }
 
         renderer.render(scene, camera);

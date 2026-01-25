@@ -237,7 +237,7 @@ export function StepLocation({ data, setData }: StepLocationProps) {
         >
           Enter coordinates manually
         </Label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             placeholder="Latitude"
             value={manualLat}
@@ -246,7 +246,7 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             step="any"
             min="-90"
             max="90"
-            className="flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
+            className="w-full sm:flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
             style={{
               backgroundColor: "rgba(255,255,255,0.05)",
               border: "1px solid rgba(255,255,255,0.1)",
@@ -269,7 +269,7 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             step="any"
             min="-180"
             max="180"
-            className="flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
+            className="w-full sm:flex-1 h-11 px-4 rounded-lg text-sm transition-all duration-200 outline-none"
             style={{
               backgroundColor: "rgba(255,255,255,0.05)",
               border: "1px solid rgba(255,255,255,0.1)",
@@ -287,7 +287,7 @@ export function StepLocation({ data, setData }: StepLocationProps) {
           <button
             onClick={handleSetManualCoordinates}
             disabled={!manualLat || !manualLng}
-            className="h-11 px-4 rounded-lg font-medium text-sm transition-all duration-200"
+            className="w-full sm:w-auto h-11 px-4 rounded-lg font-medium text-sm transition-all duration-200"
             style={{
               backgroundColor: !manualLat || !manualLng ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)",
               border: "1px solid rgba(255,255,255,0.1)",
