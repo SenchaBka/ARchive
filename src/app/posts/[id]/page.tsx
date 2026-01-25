@@ -318,9 +318,16 @@ export default function PostDetailPage() {
               <span className="font-medium">
                 {post.comments.length} comments
               </span>
-            <span className={`flex items-center gap-2 ${!isUnlocked ? "opacity-50" : ""}`}>
-              <MessageCircle className={`h-5 w-5 ${isUnlocked ? "text-blue-500" : "text-muted-foreground"}`} />
-              <span className="font-medium">{post.comments.length} comments</span>
+            </span>
+            <span
+              className={`flex items-center gap-2 ${!isUnlocked ? "opacity-50" : ""}`}
+            >
+              <MessageCircle
+                className={`h-5 w-5 ${isUnlocked ? "text-blue-500" : "text-muted-foreground"}`}
+              />
+              <span className="font-medium">
+                {post.comments.length} comments
+              </span>
             </span>
           </div>
 
