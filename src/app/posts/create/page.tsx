@@ -36,7 +36,6 @@ export default function CreatePostPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isModerating, setIsModerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PostData>({
     title: "",
@@ -47,7 +46,7 @@ export default function CreatePostPage() {
     media: null,
     audio: null,
     audioUrl: null,
-    radius: 100,
+    radius: 50,
   });
 
   const nextStep = () => setStep((s) => Math.min(s + 1, STEPS.length));
@@ -80,72 +79,12 @@ export default function CreatePostPage() {
     return "image";
   };
 
-  // Function to convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove the data URL prefix (e.g., "data:image/png;base64,")
-        const base64 = result.split(",")[1];
-        resolve(base64);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Function to moderate content before submission
-  const moderateContent = async (): Promise<{ allowed: boolean; reasons: string[] }> => {
-    // Combine title and description for text moderation
-    const textToModerate = [data.title, data.description].filter(Boolean).join("\n\n");
-    
-    let imageBase64: string | undefined;
-    let imageMimeType: string | undefined;
-    
-    // Only moderate images (not videos or 3D models)
-    if (data.media && data.media.type.startsWith("image/")) {
-      imageBase64 = await fileToBase64(data.media);
-      imageMimeType = data.media.type;
-    }
-
-    const response = await fetch("/api/moderate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: textToModerate,
-        imageBase64,
-        imageMimeType,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("Moderation API error");
-      // On API error, allow submission but log the issue
-      return { allowed: true, reasons: [] };
-    }
-
-    return response.json();
-  };
-
   // Main submit function
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setIsModerating(true);
     setError(null);
 
     try {
-      // Step 0: Moderate content before proceeding
-      const moderationResult = await moderateContent();
-      setIsModerating(false);
-
-      if (!moderationResult.allowed) {
-        const reasons = moderationResult.reasons.join("; ");
-        setError(`Content blocked: ${reasons}`);
-        setIsSubmitting(false);
-        return;
-      }
-
       // Step 1: Upload media file if exists
       let mediaUrl: string | null = null;
       let mediaType: string | null = null;
@@ -403,7 +342,7 @@ export default function CreatePostPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {isModerating ? "Checking content..." : "Creating..."}
+                  Creating...
                 </>
               ) : (
                 <>

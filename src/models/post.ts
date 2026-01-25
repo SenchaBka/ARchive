@@ -33,7 +33,7 @@ const PostSchema = new Schema({
 
   radius: {
     type: Number,
-    default: 50 // meters
+    default: 50, // meters
   },
 
   audioUrl: String,      // User-uploaded audio
