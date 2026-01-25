@@ -40,8 +40,14 @@
 
       // Polyfill for roundRect (not available in all browsers)
       if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-          if (typeof r === 'number') r = [r, r, r, r];
+        CanvasRenderingContext2D.prototype.roundRect = function (
+          x,
+          y,
+          w,
+          h,
+          r,
+        ) {
+          if (typeof r === "number") r = [r, r, r, r];
           const [tl, tr, br, bl] = r;
           this.beginPath();
           this.moveTo(x + tl, y);
@@ -403,18 +409,26 @@
           const ctx = canvas.getContext("2d");
 
           const padding = 80;
-          const columnGap = 100;
+          const columnGap = 200; // Increased gap to prevent image overflow into text
           const topPadding = 150;
-          
+
           // Two-column layout
-          const leftColumnWidth = (canvas.width - padding * 2 - columnGap) * 0.45;
-          const rightColumnWidth = (canvas.width - padding * 2 - columnGap) * 0.55;
+          const leftColumnWidth =
+            (canvas.width - padding * 2 - columnGap) * 0.42;
+          const rightColumnWidth =
+            (canvas.width - padding * 2 - columnGap) * 0.58;
           const leftColumnX = padding;
           const rightColumnX = padding + leftColumnWidth + columnGap;
 
           // Draw subtle background panel for better readability
           ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
-          ctx.roundRect(padding - 40, topPadding - 40, canvas.width - padding * 2 + 80, canvas.height - topPadding - padding + 80, 40);
+          ctx.roundRect(
+            padding - 40,
+            topPadding - 40,
+            canvas.width - padding * 2 + 80,
+            canvas.height - topPadding - padding + 80,
+            40,
+          );
           ctx.fill();
 
           // Left column: Image/Model placeholder
@@ -458,7 +472,13 @@
               // Draw rounded image container
               ctx.save();
               ctx.beginPath();
-              ctx.roundRect(xPos - 10, yPos - 10, drawWidth + 20, drawHeight + 20, 20);
+              ctx.roundRect(
+                xPos - 10,
+                yPos - 10,
+                drawWidth + 20,
+                drawHeight + 20,
+                20,
+              );
               ctx.clip();
               ctx.drawImage(img, xPos, yPos, drawWidth, drawHeight);
               ctx.restore();
@@ -499,7 +519,10 @@
               } else {
                 // Find last space within line limit
                 let cutPoint = maxCharsPerLine;
-                const spaceIndex = remainingText.lastIndexOf(" ", maxCharsPerLine);
+                const spaceIndex = remainingText.lastIndexOf(
+                  " ",
+                  maxCharsPerLine,
+                );
 
                 if (spaceIndex > maxCharsPerLine * 0.3) {
                   cutPoint = spaceIndex;
@@ -866,17 +889,17 @@
       // Add lighting for models and scene
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
       scene.add(ambientLight);
-      
+
       // Add directional light for better model illumination
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
       directionalLight.position.set(5, 10, 7);
       scene.add(directionalLight);
-      
+
       // Add a secondary fill light from the opposite side
       const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
       fillLight.position.set(-5, 5, -5);
       scene.add(fillLight);
-      
+
       // Add a subtle rim light from behind
       const rimLight = new THREE.DirectionalLight(0x88ccff, 0.3);
       rimLight.position.set(0, 0, -10);
@@ -1021,7 +1044,7 @@
               // Create a group to hold the model
               const modelGroup = new THREE.Group();
               modelGroup.add(model);
-              
+
               // Initially hide the model - will be shown after explosion
               modelGroup.visible = false;
 
@@ -1085,7 +1108,7 @@
 
               // Add rotation animation for the model
               loadedModel.userData.rotationSpeed = 0.5;
-              
+
               // Model starts hidden, will be shown after explosion
               loadedModel.visible = false;
             }
@@ -1097,14 +1120,14 @@
         // Set up callbacks
         tube.onContentShow = null;
         tube.onExplosionStart = null;
-        
+
         // Show model when explosion completes
         tube.onExplosionComplete = () => {
           if (loadedModel) {
             loadedModel.visible = true;
           }
         };
-        
+
         // Hide model when tube resets
         tube.onReset = () => {
           if (loadedModel) {
@@ -1161,7 +1184,11 @@
         }
 
         // Animate loaded model (rotation) - only when visible
-        if (loadedModel && loadedModel.visible && loadedModel.userData.rotationSpeed) {
+        if (
+          loadedModel &&
+          loadedModel.visible &&
+          loadedModel.userData.rotationSpeed
+        ) {
           loadedModel.rotation.y += loadedModel.userData.rotationSpeed * 0.01;
         }
 
