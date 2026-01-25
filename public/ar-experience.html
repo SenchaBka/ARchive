@@ -22,73 +22,11 @@
         height: 100vh;
       }
 
-      .btn-container {
-        position: absolute;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .action-btn {
-        padding: 12px 20px;
-        font-size: 14px;
-        background: linear-gradient(135deg, #4facfe, #00f2fe);
-        border: none;
-        border-radius: 25px;
-        color: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
-      }
-
-      .action-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 25px rgba(79, 172, 254, 0.6);
-      }
-
-      .action-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .action-btn.secondary {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-      }
-
-      #gps-info {
-        position: absolute;
-        top: 80px;
-        right: 10px;
-        color: #88ccff;
-        font-size: 11px;
-        padding: 8px;
-        background: rgba(79, 172, 254, 0.1);
-        border-radius: 8px;
-      }
-
-      body.param-mode #place-tube-btn,
-      body.param-mode #gps-info {
-        display: none !important;
-      }
     </style>
   </head>
   <body>
     <div id="ar-container"></div>
 
-    <div id="gps-info">
-      <strong>GPS Status:</strong> Waiting for location...
-    </div>
-
-    <div class="btn-container">
-      <button id="place-tube-btn" class="action-btn" disabled>
-        Place Tube Here
-      </button>
-    </div>
 
     <script type="importmap">
       {
@@ -825,20 +763,15 @@
 
       // State
       let tube = null;
-      let currentPosition = null;
       let raycaster = null;
       let mouse = new THREE.Vector2();
 
-      // URL params: ?image_url=...&text=...&lat=...&lon=... (lon or lng)
+      // URL params: ?image_url=...&text=...
       const sp = new URLSearchParams(window.location.search);
       const URL_IMAGE = sp.get("image_url") || "";
       const URL_TEXT = sp.get("text") || "";
-      const URL_LAT = sp.get("lat");
-      const URL_LON = sp.get("lon") || sp.get("lng");
-      const HAS_PARAMS =
-        URL_LAT != null &&
-        URL_LON != null &&
-        (URL_IMAGE !== "" || URL_TEXT !== "");
+      const HAS_PARAMS = URL_IMAGE !== "" || URL_TEXT !== "";
+
       const FALLBACK_IMAGE =
         "https://img.freepik.com/free-photo/front-view-kitten-outdoors_1161-75.jpg?semt=ais_hybrid&w=740&q=80";
       const FALLBACK_TEXT =
@@ -846,10 +779,6 @@
 
       const HARDCODED_IMAGE_URL = HAS_PARAMS ? URL_IMAGE : FALLBACK_IMAGE;
       const HARDCODED_TEXT = HAS_PARAMS ? URL_TEXT : FALLBACK_TEXT;
-
-      // UI Elements
-      const gpsInfoEl = document.getElementById("gps-info");
-      const placeTubeBtn = document.getElementById("place-tube-btn");
 
       // Three.js setup
       const container = document.getElementById("ar-container");
@@ -860,7 +789,7 @@
         0.1,
         1000,
       );
-      camera.position.set(0, 1.6, 5); // Eye height
+      camera.position.set(0, 0, 0); // Camera at origin, looking forward
 
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -881,12 +810,9 @@
       raycaster = new THREE.Raycaster();
       raycaster.params.Points = { threshold: 0.5 };
 
-      // Locar.js integration (if available)
-      let locationBased = null;
+      // Locar.js integration (webcam + device orientation only, no GPS)
       let webcam = null;
       let deviceOrientationControls = null;
-      let locarFirstLocation = true;
-      let locarPosition = null;
 
       function initLocar() {
         if (!isLocarAvailable) {
@@ -895,8 +821,7 @@
         }
 
         try {
-          locationBased = new LocAR.LocationBased(scene, camera);
-
+          // Webcam for AR background
           webcam = new LocAR.Webcam({
             video: {
               facingMode: "environment",
@@ -913,6 +838,7 @@
             );
           });
 
+          // Device orientation for looking around
           deviceOrientationControls = new LocAR.DeviceOrientationControls(
             camera,
           );
@@ -929,83 +855,11 @@
 
           deviceOrientationControls.init();
 
-          locationBased.on("gpserror", (error) => {
-            console.warn(`GPS error: ${error.code}`);
-          });
-
-          locationBased.on("gpsupdate", (ev) => {
-            locarPosition = {
-              lon: ev.position.coords.longitude,
-              lat: ev.position.coords.latitude,
-              accuracy: ev.position.coords.accuracy,
-            };
-
-            if (locarFirstLocation) {
-              locarFirstLocation = false;
-              currentPosition = locarPosition;
-              placeTubeBtn.disabled = false;
-              gpsInfoEl.innerHTML = `
-                <strong>GPS Status:</strong> Active (Locar)<br>
-                <small>Lat: ${locarPosition.lat.toFixed(6)}</small><br>
-                <small>Lon: ${locarPosition.lon.toFixed(6)}</small><br>
-                <small>Accuracy: ${locarPosition.accuracy.toFixed(1)}m</small>
-              `;
-            }
-          });
-
-          locationBased.startGps();
           return true;
         } catch (e) {
           console.error("Failed to initialize Locar.js:", e);
           return false;
         }
-      }
-
-      // GPS tracking (fallback when Locar is not available)
-      function startGPSTracking() {
-        if (HAS_PARAMS) {
-          currentPosition = {
-            lat: parseFloat(URL_LAT),
-            lon: parseFloat(URL_LON),
-            accuracy: 0,
-          };
-          return;
-        }
-
-        // If Locar is handling GPS, don't use fallback
-        if (locationBased) {
-          return;
-        }
-
-        if (!navigator.geolocation) {
-          gpsInfoEl.innerHTML = "<strong>GPS Status:</strong> Not supported";
-          placeTubeBtn.disabled = false; // Allow simulation mode
-          return;
-        }
-
-        navigator.geolocation.watchPosition(
-          (position) => {
-            currentPosition = {
-              lat: position.coords.latitude,
-              lon: position.coords.longitude,
-              accuracy: position.coords.accuracy,
-            };
-
-            gpsInfoEl.innerHTML = `
-              <strong>GPS Status:</strong> Active<br>
-              <small>Lat: ${currentPosition.lat.toFixed(6)}</small><br>
-              <small>Lon: ${currentPosition.lon.toFixed(6)}</small><br>
-              <small>Accuracy: ${currentPosition.accuracy.toFixed(1)}m</small>
-            `;
-
-            placeTubeBtn.disabled = false;
-          },
-          (error) => {
-            gpsInfoEl.innerHTML = `<strong>GPS Status:</strong> Error - ${error.message}`;
-            placeTubeBtn.disabled = false; // Allow simulation mode
-          },
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
-        );
       }
 
       // Load image from URL (optional when opened with params)
@@ -1069,26 +923,11 @@
         tube = new ParticleTube({
           scene: scene,
           camera: camera,
-          position: currentPosition,
         });
 
-        // Position in front of camera
+        // Position tube directly in front of user at fixed distance
         const tubeGroup = tube.getGroup();
-        tubeGroup.position.set(0, 0, 0);
-
-        // Use Locar positioning if available and we have a GPS fix
-        if (!HAS_PARAMS && locationBased && locarPosition) {
-          try {
-            locationBased.add(tubeGroup, locarPosition.lon, locarPosition.lat);
-            console.log(
-              "Tube added via Locar at",
-              locarPosition.lat,
-              locarPosition.lon,
-            );
-          } catch (e) {
-            console.warn("Could not use Locar positioning:", e);
-          }
-        }
+        tubeGroup.position.set(0, 0, -15); // 15 units in front of camera
 
         try {
           const imageBlob = await loadHardcodedImage();
@@ -1156,24 +995,18 @@
         // Update device orientation controls if available
         if (deviceOrientationControls) {
           deviceOrientationControls.update();
-        }
-
-        // Simple camera rotation for demo (only in simulation mode)
-        if (!locationBased) {
+        } else if (!isLocarAvailable) {
+          // Simple camera rotation for desktop simulation
           const time = Date.now() * 0.0001;
           camera.position.x = Math.sin(time) * 8;
           camera.position.z = Math.cos(time) * 8;
-          camera.lookAt(0, 0, 0);
+          camera.lookAt(0, 0, -15);
         }
 
         renderer.render(scene, camera);
       }
 
       renderer.domElement.addEventListener("click", onTubeClick);
-
-      placeTubeBtn.addEventListener("click", () => {
-        placeTube();
-      });
 
       // Handle resize
       window.addEventListener("resize", () => {
@@ -1183,15 +1016,9 @@
       });
 
       async function init() {
-        if (HAS_PARAMS) document.body.classList.add("param-mode");
-
         initLocar();
-        startGPSTracking();
         renderer.setAnimationLoop(animate);
-
-        if (HAS_PARAMS) {
-          await placeTube();
-        }
+        await placeTube();
       }
 
       init();
