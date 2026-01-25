@@ -9,12 +9,14 @@ npm run dev:https
 ```
 
 This runs `next dev --experimental-https -H 0.0.0.0`:
+
 - **HTTPS** with a self-signed certificate
 - **0.0.0.0** so the app is reachable from other devices on your network
 
 ## 2. Find your machine’s local IP
 
 **macOS / Linux:**
+
 ```bash
 # WiFi (common)
 ipconfig getifaddr en0
@@ -24,9 +26,11 @@ ifconfig | grep "inet " | grep -v 127.0.0.1
 ```
 
 **Windows:**
+
 ```bash
 ipconfig
 ```
+
 Use the IPv4 address of your active adapter (e.g. `192.168.1.100`).
 
 ## 3. Open the app from other devices
@@ -87,9 +91,9 @@ To avoid browser cert warnings on your machines:
 
 ## Summary
 
-| Step | Command / Action |
-|------|------------------|
-| Start HTTPS dev server | `npm run dev:https` |
-| Get your IP | `ipconfig getifaddr en0` (Mac) or `ipconfig` (Windows) |
-| Open on another device | `https://<YOUR_IP>:3000` |
-| Auth0 | Add `https://<YOUR_IP>:3000` URLs in Dashboard + set `AUTH0_BASE_URL` / `APP_BASE_URL` in `.env.local` |
+| Step                   | Command / Action                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| Start HTTPS dev server | `npm run dev:https`                                                                                    |
+| Get your IP            | `ipconfig getifaddr en0` (Mac) or `ipconfig` (Windows)                                                 |
+| Open on another device | `https://<YOUR_IP>:3000`                                                                               |
+| Auth0                  | Add `https://<YOUR_IP>:3000` URLs in Dashboard + set `AUTH0_BASE_URL` / `APP_BASE_URL` in `.env.local` |

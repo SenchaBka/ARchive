@@ -43,8 +43,13 @@ interface Post {
   audioUrl?: string;
   ttsAudioUrl?: string;
   likes: number;
-  likedBy?: string[];  // Array of user IDs who liked this post
-  comments: { userId: string; userName?: string; text: string; createdAt: string }[];
+  likedBy?: string[]; // Array of user IDs who liked this post
+  comments: {
+    userId: string;
+    userName?: string;
+    text: string;
+    createdAt: string;
+  }[];
   createdAt: string;
 }
 
@@ -62,7 +67,13 @@ export default function PostDetailPage() {
   const [isCommenting, setIsCommenting] = useState(false);
   const [hasPreviouslyUnlocked, setHasPreviouslyUnlocked] = useState(false);
 
-  const { latitude, longitude, error: locationError, isLoading: locationLoading, refresh: refreshLocation } = useLocation();
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    isLoading: locationLoading,
+    refresh: refreshLocation,
+  } = useLocation();
 
   // Fetch post data and check if previously unlocked
   useEffect(() => {
@@ -71,16 +82,16 @@ export default function PostDetailPage() {
         setIsLoading(true);
         const [postResponse, unlockResponse] = await Promise.all([
           fetch(`/api/posts/${postId}`),
-          fetch(`/api/posts/${postId}/unlock`)
+          fetch(`/api/posts/${postId}/unlock`),
         ]);
-        
+
         if (!postResponse.ok) {
           throw new Error("Post not found");
         }
         const data = await postResponse.json();
         setPost(data.post);
         setHasLiked(data.hasLiked || false);
-        
+
         // Check if previously unlocked
         if (unlockResponse.ok) {
           const unlockData = await unlockResponse.json();
@@ -99,9 +110,16 @@ export default function PostDetailPage() {
   }, [postId]);
 
   // Calculate if user is currently within range
-  const isCurrentlyInRange = post && latitude !== null && longitude !== null
-    ? isWithinRange(latitude, longitude, post.coordinates.lat, post.coordinates.lng, post.radius)
-    : false;
+  const isCurrentlyInRange =
+    post && latitude !== null && longitude !== null
+      ? isWithinRange(
+          latitude,
+          longitude,
+          post.coordinates.lat,
+          post.coordinates.lng,
+          post.radius,
+        )
+      : false;
 
   // User has access if they're in range OR have previously unlocked
   const isUnlocked = isCurrentlyInRange || hasPreviouslyUnlocked;
@@ -109,7 +127,9 @@ export default function PostDetailPage() {
   // Save unlock when user enters range for the first time
   useEffect(() => {
     async function saveUnlock() {
-      console.log(`[Unlock Check] postId: ${postId}, isCurrentlyInRange: ${isCurrentlyInRange}, hasPreviouslyUnlocked: ${hasPreviouslyUnlocked}, post: ${!!post}`);
+      console.log(
+        `[Unlock Check] postId: ${postId}, isCurrentlyInRange: ${isCurrentlyInRange}, hasPreviouslyUnlocked: ${hasPreviouslyUnlocked}, post: ${!!post}`,
+      );
       if (isCurrentlyInRange && !hasPreviouslyUnlocked && post) {
         try {
           console.log(`[Unlock] Saving unlock for post ${postId}`);
@@ -130,9 +150,17 @@ export default function PostDetailPage() {
   }, [isCurrentlyInRange, hasPreviouslyUnlocked, post, postId]);
 
   // Calculate distance to post
-  const distanceToPost = post && latitude !== null && longitude !== null
-    ? Math.round(haversineDistanceMeters(latitude, longitude, post.coordinates.lat, post.coordinates.lng))
-    : null;
+  const distanceToPost =
+    post && latitude !== null && longitude !== null
+      ? Math.round(
+          haversineDistanceMeters(
+            latitude,
+            longitude,
+            post.coordinates.lat,
+            post.coordinates.lng,
+          ),
+        )
+      : null;
 
   // Handle like
   const handleLike = async () => {
@@ -239,7 +267,8 @@ export default function PostDetailPage() {
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
             <span className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              {post.approximateLocation || `${post.coordinates.lat.toFixed(4)}, ${post.coordinates.lng.toFixed(4)}`}
+              {post.approximateLocation ||
+                `${post.coordinates.lat.toFixed(4)}, ${post.coordinates.lng.toFixed(4)}`}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -255,35 +284,47 @@ export default function PostDetailPage() {
               variant={isUnlocked ? "outline" : "ghost"}
               size="sm"
               className={`flex items-center gap-2 ${
-                hasLiked 
-                  ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" 
-                  : isUnlocked 
-                    ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200" 
+                hasLiked
+                  ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                  : isUnlocked
+                    ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                     : "cursor-not-allowed opacity-50"
               }`}
               onClick={handleLike}
               disabled={!isUnlocked || isLiking}
-              title={hasLiked ? "Unlike this post" : isUnlocked ? "Like this post" : "Get closer to like this post"}
+              title={
+                hasLiked
+                  ? "Unlike this post"
+                  : isUnlocked
+                    ? "Like this post"
+                    : "Get closer to like this post"
+              }
             >
-              <Heart 
+              <Heart
                 className={`h-5 w-5 ${isLiking ? "animate-pulse" : ""} ${
-                  hasLiked 
-                    ? "fill-red-500 text-red-500" 
-                    : isUnlocked 
-                      ? "text-red-500" 
+                  hasLiked
+                    ? "fill-red-500 text-red-500"
+                    : isUnlocked
+                      ? "text-red-500"
                       : "text-muted-foreground"
-                }`} 
+                }`}
               />
-              <span className="font-medium">{post.likes} {post.likes === 1 ? "like" : "likes"}</span>
+              <span className="font-medium">
+                {post.likes} {post.likes === 1 ? "like" : "likes"}
+              </span>
             </Button>
             <span className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-blue-500" />
-              <span className="font-medium">{post.comments.length} comments</span>
+              <span className="font-medium">
+                {post.comments.length} comments
+              </span>
             </span>
           </div>
 
           {/* Location Status */}
-          <div className={`rounded-lg p-3 sm:p-4 ${isUnlocked ? "bg-green-50 border border-green-200" : "bg-orange-50 border border-orange-200"}`}>
+          <div
+            className={`rounded-lg p-3 sm:p-4 ${isUnlocked ? "bg-green-50 border border-green-200" : "bg-orange-50 border border-orange-200"}`}
+          >
             <div className="flex items-start sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 {isUnlocked ? (
@@ -292,21 +333,23 @@ export default function PostDetailPage() {
                   <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 shrink-0 mt-0.5 sm:mt-0" />
                 )}
                 <div className="min-w-0">
-                  <p className={`font-medium text-sm sm:text-base ${isUnlocked ? "text-green-800" : "text-orange-800"}`}>
+                  <p
+                    className={`font-medium text-sm sm:text-base ${isUnlocked ? "text-green-800" : "text-orange-800"}`}
+                  >
                     {isUnlocked ? "Content Unlocked!" : "Content Locked"}
                   </p>
-                  <p className={`text-xs sm:text-sm ${isUnlocked ? "text-green-600" : "text-orange-600"}`}>
-                    {locationLoading ? (
-                      "Getting your location..."
-                    ) : locationError ? (
-                      locationError
-                    ) : distanceToPost !== null ? (
-                      isUnlocked
-                        ? `${distanceToPost}m away (within ${post.radius}m)`
-                        : `${distanceToPost}m away (need ≤${post.radius}m)`
-                    ) : (
-                      "Location unavailable"
-                    )}
+                  <p
+                    className={`text-xs sm:text-sm ${isUnlocked ? "text-green-600" : "text-orange-600"}`}
+                  >
+                    {locationLoading
+                      ? "Getting your location..."
+                      : locationError
+                        ? locationError
+                        : distanceToPost !== null
+                          ? isUnlocked
+                            ? `${distanceToPost}m away (within ${post.radius}m)`
+                            : `${distanceToPost}m away (need ≤${post.radius}m)`
+                          : "Location unavailable"}
                   </p>
                 </div>
               </div>
@@ -317,7 +360,9 @@ export default function PostDetailPage() {
                 disabled={locationLoading}
                 className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-black text-black hover:bg-zinc-900 border-zinc-700 text-white"
               >
-                <RefreshCw className={`h-4 w-4 ${locationLoading ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${locationLoading ? "animate-spin" : ""}`}
+                />
               </Button>
             </div>
           </div>
@@ -330,11 +375,13 @@ export default function PostDetailPage() {
                 <div className="absolute inset-0 backdrop-blur-md bg-background/80 flex flex-col items-center justify-center z-10">
                   <Lock className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground text-center px-4">
-                    Get within {post.radius}m of this location to unlock the description and audio
+                    Get within {post.radius}m of this location to unlock the
+                    description and audio
                   </p>
                 </div>
                 <p className="text-muted-foreground select-none">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                 </p>
               </div>
 
@@ -359,7 +406,7 @@ export default function PostDetailPage() {
                         ? `/api/posts/${postId}/media`
                         : "",
                       post.hiddenText ?? "",
-                      { lat: post.coordinates.lat, lng: post.coordinates.lng }
+                      { lat: post.coordinates.lat, lng: post.coordinates.lng },
                     )
                   }
                   className="w-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 hover:from-cyan-500 hover:to-blue-500 text-white border-0"
@@ -419,8 +466,10 @@ export default function PostDetailPage() {
 
           {/* Comments Section - Always visible */}
           <div className="pt-4 border-t">
-            <h3 className="font-medium mb-4">Comments ({post.comments.length})</h3>
-            
+            <h3 className="font-medium mb-4">
+              Comments ({post.comments.length})
+            </h3>
+
             {/* Add Comment Form - Only when unlocked */}
             {isUnlocked ? (
               <div className="mb-4 space-y-2">
@@ -456,15 +505,19 @@ export default function PostDetailPage() {
                 <span>Get closer to this location to add a comment</span>
               </div>
             )}
-            
+
             {post.comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet. Be the first to comment!</p>
+              <p className="text-sm text-muted-foreground">
+                No comments yet. Be the first to comment!
+              </p>
             ) : (
               <div className="space-y-3">
                 {post.comments.map((comment, index) => (
                   <div key={index} className="bg-muted rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium">{comment.userName || "Anonymous"}</p>
+                      <p className="text-sm font-medium">
+                        {comment.userName || "Anonymous"}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </p>

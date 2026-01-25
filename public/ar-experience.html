@@ -1072,7 +1072,10 @@
             if (!response.ok) throw new Error("HTTP " + response.status);
             return await response.blob();
           } catch (e) {
-            console.warn("Could not load same-origin image, using placeholder:", e);
+            console.warn(
+              "Could not load same-origin image, using placeholder:",
+              e,
+            );
             return createPlaceholderImage();
           }
         }

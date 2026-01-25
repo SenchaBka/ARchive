@@ -25,7 +25,7 @@ type ARExperienceContextValue = {
   openARExperience: (
     imageUrl: string,
     text: string,
-    coordinates: ARCoordinates
+    coordinates: ARCoordinates,
   ) => void;
   closeARExperience: () => void;
 };
@@ -40,13 +40,13 @@ const initialState: ARExperienceState = {
 };
 
 const ARExperienceContext = createContext<ARExperienceContextValue | null>(
-  null
+  null,
 );
 
 function buildIframeSrc(
   imageUrl: string,
   text: string,
-  coordinates: ARCoordinates
+  coordinates: ARCoordinates,
 ): string {
   const lat = coordinates.lat;
   const lon = coordinates.lon ?? coordinates.lng ?? 0;
@@ -70,7 +70,7 @@ export function ARExperienceProvider({ children }: PropsWithChildren) {
         coordinates,
       });
     },
-    []
+    [],
   );
 
   const closeARExperience = useCallback(() => {
@@ -78,12 +78,19 @@ export function ARExperienceProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    const handler = (e: CustomEvent<{ imageUrl: string; text: string; coordinates: ARCoordinates }>) => {
+    const handler = (
+      e: CustomEvent<{
+        imageUrl: string;
+        text: string;
+        coordinates: ARCoordinates;
+      }>,
+    ) => {
       const { imageUrl, text, coordinates } = e.detail;
       openARExperience(imageUrl, text, coordinates);
     };
     window.addEventListener(AR_OPEN_EVENT, handler as EventListener);
-    return () => window.removeEventListener(AR_OPEN_EVENT, handler as EventListener);
+    return () =>
+      window.removeEventListener(AR_OPEN_EVENT, handler as EventListener);
   }, [openARExperience]);
 
   const value = useMemo(
@@ -92,7 +99,7 @@ export function ARExperienceProvider({ children }: PropsWithChildren) {
       openARExperience,
       closeARExperience,
     }),
-    [state, openARExperience, closeARExperience]
+    [state, openARExperience, closeARExperience],
   );
 
   return (
@@ -142,7 +149,7 @@ export function useARExperience() {
   const ctx = useContext(ARExperienceContext);
   if (!ctx) {
     throw new Error(
-      "useARExperience must be used within an ARExperienceProvider"
+      "useARExperience must be used within an ARExperienceProvider",
     );
   }
   return ctx;
@@ -162,13 +169,13 @@ export function useARExperience() {
 export function openARExperience(
   imageUrl: string,
   text: string,
-  coordinates: ARCoordinates
+  coordinates: ARCoordinates,
 ): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(
     new CustomEvent(AR_OPEN_EVENT, {
       detail: { imageUrl, text, coordinates },
-    })
+    }),
   );
 }
 

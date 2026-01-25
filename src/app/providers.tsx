@@ -1,9 +1,9 @@
 // Auth0 v4 providers
 
-'use client';
+"use client";
 
 import type { PropsWithChildren } from "react";
-import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
+import { Auth0Provider, useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect, useRef } from "react";
 import { ARExperienceProvider } from "@/context/ar-experience-context";
 
