@@ -19,7 +19,20 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 's.gravatar.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.s3.*.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'arrive-ar-app.s3.us-east-2.amazonaws.com',
+      },
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
 };
 
