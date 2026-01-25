@@ -408,21 +408,47 @@ export default function PostDetailPage() {
               {/* Enter AR - only when post has image or text */}
               {(post.hiddenMedia?.type === "image" && post.hiddenMedia?.url) ||
               post.hiddenText ? (
-                <Button
-                  onClick={() =>
-                    openARExperience(
-                      post.hiddenMedia?.type === "image"
-                        ? `/api/posts/${postId}/media`
-                        : "",
-                      post.hiddenText ?? "",
-                      { lat: post.coordinates.lat, lng: post.coordinates.lng },
-                    )
-                  }
-                  className="w-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 hover:from-cyan-500 hover:to-blue-500 text-white border-0"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Experience in AR
-                </Button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() =>
+                      openARExperience(
+                        post.hiddenMedia?.type === "image"
+                          ? `/api/posts/${postId}/media`
+                          : "",
+                        post.hiddenText ?? "",
+                        {
+                          lat: post.coordinates.lat,
+                          lng: post.coordinates.lng,
+                        },
+                      )
+                    }
+                    className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.08)",
+                      color: "#fafafa",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255,255,255,0.12)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.25)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255,255,255,0.08)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.15)";
+                    }}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Immerse yourself in the story
+                  </button>
+                  <p
+                    className="text-center text-xs"
+                    style={{ color: "rgba(255,255,255,0.5)" }}
+                  ></p>
+                </div>
               ) : null}
 
               {/* Description */}

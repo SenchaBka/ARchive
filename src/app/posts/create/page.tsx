@@ -47,6 +47,7 @@ export default function CreatePostPage() {
     audio: null,
     audioUrl: null,
     radius: 50,
+    voiceId: null, // null means use default from env
   });
 
   const nextStep = () => setStep((s) => Math.min(s + 1, STEPS.length));
@@ -131,6 +132,7 @@ export default function CreatePostPage() {
           mediaUrl: mediaUrl,
           mediaType: mediaType,
           audioUrl: audioUrl,
+          voiceId: data.voiceId,
         }),
       });
 

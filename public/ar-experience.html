@@ -22,22 +22,6 @@
         height: 100vh;
       }
 
-      #status {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: #fff;
-        font-size: 14px;
-        text-align: center;
-        pointer-events: none;
-        text-shadow: 0 0 10px rgba(100, 180, 255, 0.8);
-        background: rgba(0, 0, 0, 0.6);
-        padding: 10px 20px;
-        border-radius: 20px;
-        max-width: 90%;
-      }
-
       .btn-container {
         position: absolute;
         bottom: 30px;
@@ -91,20 +75,10 @@
       body.param-mode #gps-info {
         display: none !important;
       }
-
-      body.param-mode #status {
-        top: 12px;
-        font-size: 12px;
-      }
     </style>
   </head>
   <body>
     <div id="ar-container"></div>
-
-    <div id="status">
-      Initializing location-based AR... Click tube to explode and reveal
-      content!
-    </div>
 
     <div id="gps-info">
       <strong>GPS Status:</strong> Waiting for location...
@@ -114,17 +88,13 @@
       <button id="place-tube-btn" class="action-btn" disabled>
         Place Tube Here
       </button>
-      <button id="explode-btn" class="action-btn secondary" disabled>
-        Explode
-      </button>
-      <button id="reset-btn" class="action-btn secondary">Reset</button>
     </div>
 
     <script type="importmap">
       {
         "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/"
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
         }
       }
     </script>
@@ -134,9 +104,9 @@
       // Inline ParticleTube class
       class ParticleTube {
         constructor(config = {}) {
-          this.PARTICLE_COUNT = config.particleCount || 25000;
+          this.PARTICLE_COUNT = config.particleCount || 60000;
           this.TUBE_RADIUS = config.tubeRadius || 0.6;
-          this.TUBE_HEIGHT = config.tubeHeight || 8;
+          this.TUBE_HEIGHT = config.tubeHeight || 80;
           this.MAX_IMAGES = config.maxImages || 5;
           this.MAX_TEXT_LENGTH = config.maxTextLength || 1000;
           this.IMAGE_MAX_SIZE = config.imageMaxSize || 512;
@@ -272,28 +242,6 @@
             this.cylinderMaterial,
           );
           this.group.add(this.innerCylinder);
-
-          const glowCylinderGeometry = new THREE.CylinderGeometry(
-            this.TUBE_RADIUS + 0.15,
-            this.TUBE_RADIUS + 0.15,
-            this.TUBE_HEIGHT,
-            32,
-            1,
-            true,
-          );
-          this.glowCylinderMaterial = new THREE.MeshBasicMaterial({
-            color: 0xaaddff,
-            transparent: true,
-            opacity: 0.1,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          });
-          this.glowCylinder = new THREE.Mesh(
-            glowCylinderGeometry,
-            this.glowCylinderMaterial,
-          );
-          this.group.add(this.glowCylinder);
         }
 
         createParticleTexture() {
@@ -487,7 +435,7 @@
           const ctx = canvas.getContext("2d");
 
           canvas.width = 1024;
-          canvas.height = 2048;
+          canvas.height = 6144;
 
           return canvas;
         }
@@ -496,7 +444,7 @@
           const canvas = this.createContentCanvas();
           const ctx = canvas.getContext("2d");
 
-          let yOffset = 30;
+          let yOffset = 200;
           const padding = 20;
 
           if (this.images.length > 0) {
@@ -511,7 +459,7 @@
 
             if (img) {
               const availableWidth = canvas.width - padding * 2;
-              const imageHeight = 4000; // Much bigger image
+              const imageHeight = 5000;
               const imageWidth = availableWidth;
 
               let drawWidth = imageWidth;
@@ -537,12 +485,12 @@
           if (this.text) {
             yOffset += 10;
 
-            ctx.fillStyle = "#ffffff";
-            ctx.font = '18px "Segoe UI", sans-serif';
+            ctx.fillStyle = "#000000";
+            ctx.font = '32px "Segoe UI", sans-serif';
             ctx.textAlign = "left";
 
-            const maxCharsPerLine = 55;
-            const lineHeight = 26;
+            const maxCharsPerLine = 38;
+            const lineHeight = 40;
             const textPadding = padding;
 
             let remainingText = this.text;
@@ -593,7 +541,7 @@
           texture.needsUpdate = true;
 
           const aspectRatio = contentCanvas.height / contentCanvas.width;
-          const planeWidth = 3.0; // Much bigger plane
+          const planeWidth = 6.0;
           const planeHeight = planeWidth * aspectRatio;
 
           const planeGeometry = new THREE.PlaneGeometry(
@@ -609,7 +557,7 @@
           });
 
           const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-          plane.position.set(0, 0, 0);
+          plane.position.set(0, -2, 0);
 
           this.contentPlanes.push(plane);
           this.group.add(plane);
@@ -705,11 +653,8 @@
           this.geometry.attributes.alpha.needsUpdate = true;
 
           this.cylinderMaterial.opacity = 0.35;
-          this.glowCylinderMaterial.opacity = 0.1;
           this.innerCylinder.visible = true;
-          this.glowCylinder.visible = true;
           this.innerCylinder.scale.set(1, 1, 1);
-          this.glowCylinder.scale.set(1, 1, 1);
 
           this.tubeLight1.intensity = 3;
           this.tubeLight2.intensity = 3;
@@ -762,10 +707,6 @@
               0,
               0.35 * (1 - progress * 2.5),
             );
-            this.glowCylinderMaterial.opacity = Math.max(
-              0,
-              0.1 * (1 - progress * 2.5),
-            );
 
             this.tubeLight1.intensity = Math.max(0, 3 * (1 - progress * 2));
             this.tubeLight2.intensity = Math.max(0, 3 * (1 - progress * 2));
@@ -773,7 +714,6 @@
 
             const scale = 1 + progress * 1.2;
             this.innerCylinder.scale.set(scale, 1, scale);
-            this.glowCylinder.scale.set(scale, 1, scale);
 
             if (progress >= 0.2 && this.contentPlanes.length > 0) {
               const contentProgress = Math.min((progress - 0.2) / 0.8, 1);
@@ -787,7 +727,6 @@
 
             if (progress >= 0.4) {
               this.innerCylinder.visible = false;
-              this.glowCylinder.visible = false;
             }
 
             if (progress >= 1 && this.onExplosionComplete) {
@@ -844,11 +783,8 @@
 
           this.innerCylinder.geometry.dispose();
           this.cylinderMaterial.dispose();
-          this.glowCylinder.geometry.dispose();
-          this.glowCylinderMaterial.dispose();
 
           this.group.remove(this.innerCylinder);
-          this.group.remove(this.glowCylinder);
           this.group.remove(this.tubeLight1);
           this.group.remove(this.tubeLight2);
           this.group.remove(this.tubeLight3);
@@ -863,30 +799,28 @@
       let LocAR = null;
       let isLocarAvailable = false;
 
-      // Try multiple CDN sources for locar
       const locarUrls = [
-        "https://cdn.jsdelivr.net/npm/locar@latest/dist/locar.es.js",
-        "https://unpkg.com/locar@latest/dist/locar.es.js",
-        "https://esm.sh/locar@latest",
+        "https://cdn.jsdelivr.net/npm/locar@0.1.8/dist/locar.es.js",
+        "https://unpkg.com/locar@0.1.8/dist/locar.es.js",
+        "https://esm.sh/locar@0.1.8",
       ];
 
       for (const url of locarUrls) {
         try {
           const locarModule = await import(url);
-          LocAR = locarModule;
-          isLocarAvailable = true;
-          console.log(`Locar.js loaded successfully from ${url}`);
-          break;
+          LocAR = locarModule.default ?? locarModule;
+          if (LocAR?.LocationBased) {
+            isLocarAvailable = true;
+            console.log("Locar.js loaded from", url);
+            break;
+          }
         } catch (e) {
-          // Try next URL
           continue;
         }
       }
 
       if (!isLocarAvailable) {
-        console.warn(
-          "Locar.js not available from any CDN, using simulation mode",
-        );
+        console.warn("Locar.js not available, using simulation mode");
       }
 
       // State
@@ -914,11 +848,8 @@
       const HARDCODED_TEXT = HAS_PARAMS ? URL_TEXT : FALLBACK_TEXT;
 
       // UI Elements
-      const statusEl = document.getElementById("status");
       const gpsInfoEl = document.getElementById("gps-info");
       const placeTubeBtn = document.getElementById("place-tube-btn");
-      const explodeBtn = document.getElementById("explode-btn");
-      const resetBtn = document.getElementById("reset-btn");
 
       // Three.js setup
       const container = document.getElementById("ar-container");
@@ -954,18 +885,18 @@
       let locationBased = null;
       let webcam = null;
       let deviceOrientationControls = null;
+      let locarFirstLocation = true;
+      let locarPosition = null;
 
-      async function initLocar() {
+      function initLocar() {
         if (!isLocarAvailable) {
-          statusEl.textContent = "Simulation mode - Locar.js not available";
+          console.warn("Locar.js not available, using simulation mode");
           return false;
         }
 
         try {
-          // Initialize Locar.js - no LocAR class needed, just LocationBased
           locationBased = new LocAR.LocationBased(scene, camera);
 
-          // Initialize webcam for AR background
           webcam = new LocAR.Webcam({
             video: {
               facingMode: "environment",
@@ -982,7 +913,6 @@
             );
           });
 
-          // Initialize device orientation controls
           deviceOrientationControls = new LocAR.DeviceOrientationControls(
             camera,
           );
@@ -999,24 +929,39 @@
 
           deviceOrientationControls.init();
 
-          // Handle GPS errors
           locationBased.on("gpserror", (error) => {
             console.warn(`GPS error: ${error.code}`);
           });
 
-          // Start location tracking
-          locationBased.startGps();
+          locationBased.on("gpsupdate", (ev) => {
+            locarPosition = {
+              lon: ev.position.coords.longitude,
+              lat: ev.position.coords.latitude,
+              accuracy: ev.position.coords.accuracy,
+            };
 
-          statusEl.textContent = "Location-based AR initialized";
+            if (locarFirstLocation) {
+              locarFirstLocation = false;
+              currentPosition = locarPosition;
+              placeTubeBtn.disabled = false;
+              gpsInfoEl.innerHTML = `
+                <strong>GPS Status:</strong> Active (Locar)<br>
+                <small>Lat: ${locarPosition.lat.toFixed(6)}</small><br>
+                <small>Lon: ${locarPosition.lon.toFixed(6)}</small><br>
+                <small>Accuracy: ${locarPosition.accuracy.toFixed(1)}m</small>
+              `;
+            }
+          });
+
+          locationBased.startGps();
           return true;
         } catch (e) {
           console.error("Failed to initialize Locar.js:", e);
-          statusEl.textContent = "Failed to initialize AR - using simulation";
           return false;
         }
       }
 
-      // GPS tracking (works with or without Locar)
+      // GPS tracking (fallback when Locar is not available)
       function startGPSTracking() {
         if (HAS_PARAMS) {
           currentPosition = {
@@ -1026,8 +971,15 @@
           };
           return;
         }
+
+        // If Locar is handling GPS, don't use fallback
+        if (locationBased) {
+          return;
+        }
+
         if (!navigator.geolocation) {
           gpsInfoEl.innerHTML = "<strong>GPS Status:</strong> Not supported";
+          placeTubeBtn.disabled = false; // Allow simulation mode
           return;
         }
 
@@ -1040,17 +992,17 @@
             };
 
             gpsInfoEl.innerHTML = `
-                        <strong>GPS Status:</strong> Active<br>
-                        <small>Lat: ${currentPosition.lat.toFixed(6)}</small><br>
-                        <small>Lon: ${currentPosition.lon.toFixed(6)}</small><br>
-                        <small>Accuracy: ${currentPosition.accuracy.toFixed(1)}m</small>
-                    `;
+              <strong>GPS Status:</strong> Active<br>
+              <small>Lat: ${currentPosition.lat.toFixed(6)}</small><br>
+              <small>Lon: ${currentPosition.lon.toFixed(6)}</small><br>
+              <small>Accuracy: ${currentPosition.accuracy.toFixed(1)}m</small>
+            `;
 
             placeTubeBtn.disabled = false;
           },
           (error) => {
             gpsInfoEl.innerHTML = `<strong>GPS Status:</strong> Error - ${error.message}`;
-            placeTubeBtn.disabled = false;
+            placeTubeBtn.disabled = false; // Allow simulation mode
           },
           { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
         );
@@ -1124,64 +1076,36 @@
         const tubeGroup = tube.getGroup();
         tubeGroup.position.set(0, 0, 0);
 
-        // Locar.add() needs the *user's* GPS first (from its own startGps()). It throws
-        // "No initial position determined" until that's ready. When opened with params
-        // (overlay), we skip Locar positioning and always use simulation so the
-        // experience works immediately on desktop and mobile without waiting for GPS.
-        const useLocarPositioning =
-          !HAS_PARAMS && locationBased && currentPosition;
-
-        if (useLocarPositioning) {
+        // Use Locar positioning if available and we have a GPS fix
+        if (!HAS_PARAMS && locationBased && locarPosition) {
           try {
-            locationBased.add(
-              tubeGroup,
-              currentPosition.lon,
-              currentPosition.lat,
+            locationBased.add(tubeGroup, locarPosition.lon, locarPosition.lat);
+            console.log(
+              "Tube added via Locar at",
+              locarPosition.lat,
+              locarPosition.lon,
             );
-            statusEl.textContent = `Tube placed at your location (${currentPosition.lat.toFixed(6)}, ${currentPosition.lon.toFixed(6)})`;
           } catch (e) {
             console.warn("Could not use Locar positioning:", e);
-            statusEl.textContent = "Tube placed (simulation mode)";
           }
-        } else {
-          // Simulation: tube stays at origin. Scene is already set up; no add() needed.
-          statusEl.textContent = "Tube placed (simulation mode)";
         }
 
-        statusEl.textContent = "Loading content...";
         try {
           const imageBlob = await loadHardcodedImage();
           if (imageBlob) await tube.setImages([imageBlob]);
           else await tube.setImages([]);
           tube.setText(HARDCODED_TEXT || "");
-          statusEl.textContent = "Content loaded! Click tube to explode";
         } catch (e) {
           console.error("Failed to load content:", e);
           tube.setText(HARDCODED_TEXT || "");
-          statusEl.textContent = "Tube placed - click to explode";
         }
 
-        // Set up callbacks
-        tube.onContentShow = () => {
-          statusEl.textContent = "Content loaded! Click tube to explode";
-        };
+        tube.onContentShow = null;
+        tube.onExplosionStart = null;
+        tube.onExplosionComplete = null;
+        tube.onReset = null;
 
-        tube.onExplosionStart = () => {
-          statusEl.textContent = "Exploding!";
-        };
-
-        tube.onExplosionComplete = () => {
-          statusEl.textContent = "Explosion complete - click Reset";
-        };
-
-        tube.onReset = () => {
-          statusEl.textContent = "Tube reset";
-          explodeBtn.disabled = true;
-        };
-
-        // Automatically show content
         await tube.showContent();
-        explodeBtn.disabled = false;
       }
 
       // Handle click on tube
@@ -1225,8 +1149,6 @@
 
       // Animation loop
       function animate() {
-        requestAnimationFrame(animate);
-
         if (tube) {
           tube.update();
         }
@@ -1247,25 +1169,10 @@
         renderer.render(scene, camera);
       }
 
-      // Add click listener to canvas
       renderer.domElement.addEventListener("click", onTubeClick);
 
-      // Event handlers
       placeTubeBtn.addEventListener("click", () => {
         placeTube();
-      });
-
-      explodeBtn.addEventListener("click", () => {
-        if (tube) {
-          tube.startExplosion();
-        }
-      });
-
-      resetBtn.addEventListener("click", () => {
-        if (tube) {
-          tube.reset();
-        }
-        explodeBtn.disabled = true;
       });
 
       // Handle resize
@@ -1275,23 +1182,15 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // Initialize
       async function init() {
-        statusEl.textContent = "Initializing...";
         if (HAS_PARAMS) document.body.classList.add("param-mode");
 
-        await initLocar();
+        initLocar();
         startGPSTracking();
-        animate();
+        renderer.setAnimationLoop(animate);
 
         if (HAS_PARAMS) {
-          statusEl.textContent = "Loading AR experience...";
           await placeTube();
-          statusEl.textContent = "Click tube to explode and reveal content!";
-        } else {
-          statusEl.textContent = isLocarAvailable
-            ? 'Ready - Allow location access and click "Place Tube Here"'
-            : 'Simulation mode - Click "Place Tube Here" to start';
         }
       }
 

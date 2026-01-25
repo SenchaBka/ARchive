@@ -8,4 +8,5 @@ export interface PostData {
   audio: File | null;
   audioUrl: string | null; // URL from cloud storage after upload
   radius: number;
+  voiceId: string | null; // Voice ID for TTS generation
 }

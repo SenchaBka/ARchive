@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       mediaUrl,
       mediaType,
       audioUrl,
+      voiceId,
     } = body;
 
     // 4. Validate required fields
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest) {
     let ttsAudioUrl: string | null = null;
     if (description && description.trim() !== "") {
       try {
-        ttsAudioUrl = await generateTts(description);
+        // Use provided voiceId (null/undefined will use default from env)
+        ttsAudioUrl = await generateTts(description, voiceId);
       } catch (ttsError) {
         // Log the error but don't fail the post creation
         console.error("[Post Create] TTS generation failed:", ttsError);
