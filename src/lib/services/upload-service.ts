@@ -47,7 +47,6 @@ async function getBucketRegion(): Promise<string> {
  */
 async function createS3Client(): Promise<{ client: S3Client; region: string }> {
   const region = await getBucketRegion();
-  console.log(`[S3 Upload] Using region: ${region} (configured: ${DEFAULT_REGION})`);
   
   return {
     client: new S3Client({

@@ -58,9 +58,7 @@ export async function POST(request: NextRequest) {
     let ttsAudioUrl: string | null = null;
     if (description && description.trim() !== "") {
       try {
-        console.log("[Post Create] Generating TTS for description...");
         ttsAudioUrl = await generateTts(description);
-        console.log("[Post Create] TTS generated:", ttsAudioUrl);
       } catch (ttsError) {
         // Log the error but don't fail the post creation
         console.error("[Post Create] TTS generation failed:", ttsError);

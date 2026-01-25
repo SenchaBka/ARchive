@@ -244,27 +244,27 @@ export default function PostDetailPage() {
           </div>
 
           {/* Location Status */}
-          <div className={`rounded-lg p-4 ${isUnlocked ? "bg-green-50 border border-green-200" : "bg-orange-50 border border-orange-200"}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <div className={`rounded-lg p-3 sm:p-4 ${isUnlocked ? "bg-green-50 border border-green-200" : "bg-orange-50 border border-orange-200"}`}>
+            <div className="flex items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 {isUnlocked ? (
-                  <Unlock className="h-6 w-6 text-green-600" />
+                  <Unlock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 shrink-0 mt-0.5 sm:mt-0" />
                 ) : (
-                  <Lock className="h-6 w-6 text-orange-600" />
+                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 shrink-0 mt-0.5 sm:mt-0" />
                 )}
-                <div>
-                  <p className={`font-medium ${isUnlocked ? "text-green-800" : "text-orange-800"}`}>
+                <div className="min-w-0">
+                  <p className={`font-medium text-sm sm:text-base ${isUnlocked ? "text-green-800" : "text-orange-800"}`}>
                     {isUnlocked ? "Content Unlocked!" : "Content Locked"}
                   </p>
-                  <p className={`text-sm ${isUnlocked ? "text-green-600" : "text-orange-600"}`}>
+                  <p className={`text-xs sm:text-sm ${isUnlocked ? "text-green-600" : "text-orange-600"}`}>
                     {locationLoading ? (
                       "Getting your location..."
                     ) : locationError ? (
                       locationError
                     ) : distanceToPost !== null ? (
                       isUnlocked
-                        ? `You are ${distanceToPost}m away (within ${post.radius}m range)`
-                        : `You are ${distanceToPost}m away (need to be within ${post.radius}m)`
+                        ? `${distanceToPost}m away (within ${post.radius}m)`
+                        : `${distanceToPost}m away (need ≤${post.radius}m)`
                     ) : (
                       "Location unavailable"
                     )}
@@ -273,9 +273,10 @@ export default function PostDetailPage() {
               </div>
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={refreshLocation}
                 disabled={locationLoading}
+                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10 bg-black text-black hover:bg-zinc-900 border-zinc-700 text-white"
               >
                 <RefreshCw className={`h-4 w-4 ${locationLoading ? "animate-spin" : ""}`} />
               </Button>

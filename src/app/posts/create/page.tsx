@@ -141,7 +141,6 @@ export default function CreatePostPage() {
       }
 
       // Success! Redirect to posts page
-      console.log("Post created:", result);
       router.push("/posts");
 
     } catch (err) {
