@@ -42,7 +42,7 @@ interface Post {
   ttsAudioUrl?: string;
   likes: number;
   likedBy?: string[];  // Array of user IDs who liked this post
-  comments: { userId: string; text: string; createdAt: string }[];
+  comments: { userId: string; userName?: string; text: string; createdAt: string }[];
   createdAt: string;
 }
 
@@ -56,6 +56,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState(false);
   const [hasLiked, setHasLiked] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [isCommenting, setIsCommenting] = useState(false);
 
   const { latitude, longitude, error: locationError, isLoading: locationLoading, refresh: refreshLocation } = useLocation();
 
@@ -95,14 +97,14 @@ export default function PostDetailPage() {
 
   // Handle like
   const handleLike = async () => {
-    if (!post || !isUnlocked || latitude === null || longitude === null) return;
+    if (!post || !isUnlocked) return;
 
     setIsLiking(true);
     try {
       const response = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude, longitude }),
+        body: JSON.stringify({}),
       });
 
       const data = await response.json();
@@ -117,6 +119,33 @@ export default function PostDetailPage() {
       console.error("Error liking post:", err);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  // Handle comment
+  const handleComment = async () => {
+    if (!post || !isUnlocked || !commentText.trim()) return;
+
+    setIsCommenting(true);
+    try {
+      const response = await fetch(`/api/posts/${postId}/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: commentText.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPost({ ...post, comments: data.comments });
+        setCommentText("");
+      } else {
+        console.error("Failed to comment:", data.error);
+      }
+    } catch (err) {
+      console.error("Error adding comment:", err);
+    } finally {
+      setIsCommenting(false);
     }
   };
 
@@ -331,16 +360,56 @@ export default function PostDetailPage() {
           {/* Comments Section - Always visible */}
           <div className="pt-4 border-t">
             <h3 className="font-medium mb-4">Comments ({post.comments.length})</h3>
+            
+            {/* Add Comment Form - Only when unlocked */}
+            {isUnlocked ? (
+              <div className="mb-4 space-y-2">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  rows={3}
+                  disabled={isCommenting}
+                />
+                <Button
+                  onClick={handleComment}
+                  disabled={isCommenting || !commentText.trim()}
+                  className="w-full sm:w-auto"
+                >
+                  {isCommenting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Post Comment
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="mb-4 p-3 bg-muted rounded-lg flex items-center gap-2 text-sm text-muted-foreground">
+                <Lock className="h-4 w-4" />
+                <span>Get closer to this location to add a comment</span>
+              </div>
+            )}
+            
             {post.comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet</p>
+              <p className="text-sm text-muted-foreground">No comments yet. Be the first to comment!</p>
             ) : (
               <div className="space-y-3">
                 {post.comments.map((comment, index) => (
                   <div key={index} className="bg-muted rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium">{comment.userName || "Anonymous"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                     <p className="text-sm">{comment.text}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </p>
                   </div>
                 ))}
               </div>

@@ -50,6 +50,7 @@ const PostSchema = new Schema({
 
   comments: [{
     userId: { type: String, required: true },
+    userName: { type: String, default: "Anonymous" },
     text: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
   }],

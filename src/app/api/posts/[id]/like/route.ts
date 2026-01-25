@@ -1,11 +1,10 @@
 // POST /api/posts/[id]/like
-// Like or unlike a post (requires user to be within range)
+// Like or unlike a post (frontend verifies user is within range)
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { connectDB } from "@/lib/db";
 import { Post } from "@/models/Post";
-import { isWithinRange } from "@/lib/utils/distance";
 
 export async function POST(
   request: NextRequest,
@@ -23,16 +22,6 @@ export async function POST(
 
     const userId = session.user.sub;
     const { id } = await params;
-    const body = await request.json();
-    const { latitude, longitude } = body;
-
-    // Validate coordinates
-    if (latitude === undefined || longitude === undefined) {
-      return NextResponse.json(
-        { error: "Location coordinates are required" },
-        { status: 400 }
-      );
-    }
 
     await connectDB();
 
@@ -42,22 +31,6 @@ export async function POST(
       return NextResponse.json(
         { error: "Post not found" },
         { status: 404 }
-      );
-    }
-
-    // Check if user is within range
-    const withinRange = isWithinRange(
-      latitude,
-      longitude,
-      post.coordinates.lat,
-      post.coordinates.lng,
-      post.radius
-    );
-
-    if (!withinRange) {
-      return NextResponse.json(
-        { error: "You must be within range of the post to like it" },
-        { status: 403 }
       );
     }
 
