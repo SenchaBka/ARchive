@@ -13,7 +13,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Navigation, Heart, MessageCircle, Lock, Unlock, ExternalLink, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 // Fix Leaflet default marker icon issue
 const defaultIcon = L.icon({
@@ -300,24 +299,55 @@ export function PostMap({
                   </div>
 
                   {/* Action buttons */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link href={`/posts/${post._id}`}>
-                      <Button size="sm" className="w-full gap-2 font-bold">
-                        <ExternalLink className="h-3 w-3" />
-                        Details
-                      </Button>
-                    </Link>
-                    <Button 
-                      size="sm" 
-                      className="w-full gap-2 font-bold"
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <a 
+                      href={`/posts/${post._id}`}
+                      className="popup-btn"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        backgroundColor: '#fafafa',
+                        color: '#0a0a0a',
+                        fontFamily: "'Geist Mono', monospace",
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      <ExternalLink style={{ width: '14px', height: '14px' }} />
+                      Details
+                    </a>
+                    <button 
+                      className="popup-btn"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        backgroundColor: '#fafafa',
+                        color: '#0a0a0a',
+                        fontFamily: "'Geist Mono', monospace",
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
                       onClick={() => {
                         const url = `https://www.google.com/maps/dir/?api=1&destination=${post.coordinates.lat},${post.coordinates.lng}`;
                         window.open(url, '_blank');
                       }}
                     >
-                      <Route className="h-3 w-3" />
+                      <Route style={{ width: '14px', height: '14px' }} />
                       Directions
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </Popup>
