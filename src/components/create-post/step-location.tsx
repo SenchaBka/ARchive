@@ -376,8 +376,8 @@ export function StepLocation({ data, setData }: StepLocationProps) {
             id="radius"
             type="range"
             min={10}
-            max={500}
-            step={10}
+            max={50}
+            step={5}
             value={data.radius}
             onChange={(e) => setData({ ...data, radius: Number(e.target.value) })}
             className="w-full h-2 rounded-full appearance-none cursor-pointer"
@@ -392,7 +392,7 @@ export function StepLocation({ data, setData }: StepLocationProps) {
           style={{ color: "rgba(255,255,255,0.4)" }}
         >
           <span>10m</span>
-          <span>500m</span>
+          <span>50m</span>
         </div>
       </div>
     </div>
