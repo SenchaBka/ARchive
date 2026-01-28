@@ -153,7 +153,7 @@ export function Navbar() {
               </a>
 
               <a
-                href="/auth/signup"
+                href="/auth/login?screen_hint=signup"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10"
                 style={{ color: "rgba(255,255,255,0.9)" }}
