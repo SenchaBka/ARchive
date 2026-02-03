@@ -1,7 +1,0 @@
-// Auth guard wrapper
-
-import type { PropsWithChildren } from "react";
-
-export function ProtectedRoute({ children }: PropsWithChildren) {
-  return <>{children}</>;
-}
