@@ -125,7 +125,6 @@ Users can:
 - **Node.js** (Next.js API routes)
 - **MongoDB Atlas**
 - **AWS S3** (storage for assets, 3D models, and media files)
-  - geospatial indexes for fast radius queries
 
 ### Auth
 - **Auth0**
